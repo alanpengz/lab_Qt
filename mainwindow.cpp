@@ -337,17 +337,13 @@ void MainWindow::on_clearSonicRecvButton_clicked(){
 }
 
 void MainWindow::on_vlcSendButton_clicked(){
-    char vlcsend[239];
-    QString spiSend = ui->vlcSendtextEdit->toPlainText();
-    QByteArray spiSendBytes = spiSend.toUtf8();
-    char* tmp = spiSendBytes.data();
+        char vlcsend[239];
+        QString spiSend = ui->vlcSendtextEdit->toPlainText();
+        QByteArray spiSendBytes = spiSend.toUtf8();
+        char* tmp = spiSendBytes.data();
 
-    int len=0;
-    while(*tmp++)len++;
-
-    strcpy(vlcsend, tmp);
-
-    wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
+        strcpy(vlcsend, tmp);
+        wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
 }
 
 void MainWindow::on_clearVLCrecvButton_clicked(){
