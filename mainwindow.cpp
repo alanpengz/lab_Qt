@@ -23,7 +23,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(&serialROV, &QSerialPort::readyRead, this, &MainWindow::serialROV_readyRead);
     QObject::connect(&serialSonic, &QSerialPort::readyRead, this, &MainWindow::serialSonic_readyRead);
 
-
     std::thread t1(&MainWindow::serialport_refresh, this);
     t1.detach();
 
