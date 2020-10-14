@@ -8,8 +8,6 @@
 #include <threads.h>
 #include <unistd.h>
 
-
-int X=0, Y=0, M=0, Z=0;
 std::map<QString, QString>
 orderMap{{"-7","1"}, {"-6","2"}, {"-5","3"}, {"-4","4"},{"-3","5"},{"-2","6"},{"-1","7"},{"0","8"},{"1","9"},{"2","a"},{"3","b"},{"4","c"},{"5","d"},{"6","e"},{"7","f"}};
 
@@ -27,11 +25,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->serialBox->clear();
     ui->sonicBox->clear();
-    //通过QSerialPortInfo查找可用串口
-    foreach(const QSerialPortInfo &info, QSerialPortInfo::availablePorts()){
-        ui->serialBox->addItem(info.portName());
-        ui->sonicBox->addItem(info.portName());
-    }
+    std::thread t1(&MainWindow::serialport_refresh, this);
+    t1.detach();
 
     ui->X_upButton->setEnabled(false);
     ui->X_downButton->setEnabled(false);
@@ -47,6 +42,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->Mspeed_label->setText(QString::number(M));
     ui->Zspeed_label->setText(QString::number(Z));
     ui->sonicSendButton->setEnabled(false);
+    ui->AButton->setEnabled(false);
+    ui->DButton->setEnabled(false);
+    ui->MButton->setEnabled(false);
+    ui->EButton->setEnabled(false);
 }
 
 MainWindow::~MainWindow()
@@ -55,29 +54,44 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::spi_recv(){
+    pinMode(6, INPUT);
     while(true){
-        unsigned char vlcrecv[239];
-        wiringPiSPIDataRW(1, vlcrecv, 239);
-        char* tmp = (char*)vlcrecv;
+        if(digitalRead(6)){
+            unsigned char vlcrecv[239];
+            wiringPiSPIDataRW(1, vlcrecv, 239);
+            char* tmp = (char*)vlcrecv;
 
-        QString spirecv = QString(tmp);
-        ui->vlcRecvtextBrowser->append(spirecv);
-        memset(vlcrecv, 0, 0);
+            QString spirecv = QString(tmp);
+            ui->vlcRecvtextBrowser->append(spirecv);
+            memset(vlcrecv, 0, 0);
+        }
+    }
+}
+
+void MainWindow::serialport_refresh(){
+    while(true){
+        foreach(const QSerialPortInfo &info, QSerialPortInfo::availablePorts()){
+
+            ui->serialBox->addItem(info.portName());
+            ui->sonicBox->addItem(info.portName());
+        }
         sleep(1);
     }
 }
+
 
 void MainWindow::spi_init(){
     //初始化SPI
     if(wiringPiSetup()<0){
       QMessageBox::about(NULL, "提示", "wiringPi初始化失败！");
      }
-    if(spiFd0 = wiringPiSPISetup(0,500000)==-1){
+    if(spiFd0 = wiringPiSPISetup(0,976000)==-1){
        QMessageBox::about(NULL, "提示", "SPI0初始化失败！");
      }
-    if(spiFd1 = wiringPiSPISetup(1,500000)==-1){
+    if(spiFd1 = wiringPiSPISetup(1,976000)==-1){
        QMessageBox::about(NULL, "提示", "SPI1初始化失败！");
      }
+
     std::thread t(&MainWindow::spi_recv, this);
     t.detach();
 }
@@ -120,17 +134,22 @@ void MainWindow::serialSonic_readyRead()
 
             serialROV.write(order_send);
         }
-        QString X, Y, M, Z;
+        QString QX, QY, QM, QZ;
         for(std::map<QString,QString>::iterator it = orderMap.begin();it!=orderMap.end();it++) {
-            if(it->second==QString(orderVal[1])) X = it->first;
-            if(it->second==QString(orderVal[2])) Y = it->first;
-            if(it->second==QString(orderVal[3])) M = it->first;
-            if(it->second==QString(orderVal[4])) Z = it->first;
+            if(it->second==QString(orderVal[1])) QX = it->first;
+            if(it->second==QString(orderVal[2])) QY = it->first;
+            if(it->second==QString(orderVal[3])) QM = it->first;
+            if(it->second==QString(orderVal[4])) QZ = it->first;
         }
-        ui->Xspeed_label->setText(X);
-        ui->Yspeed_label->setText(Y);
-        ui->Mspeed_label->setText(M);
-        ui->Zspeed_label->setText(Z);
+        // 更新全局速度
+        X = QX.toInt();
+        Y = QY.toInt();
+        M = QM.toInt();
+        Z = QZ.toInt();
+        ui->Xspeed_label->setText(QX);
+        ui->Yspeed_label->setText(QY);
+        ui->Mspeed_label->setText(QM);
+        ui->Zspeed_label->setText(QZ);
     }
     else{
         QString orderNotFound = "NotFound";
@@ -189,6 +208,10 @@ void MainWindow::on_openButton_clicked()
         ui->Z_downButton->setEnabled(false);
         ui->speedResetButton->setEnabled(false);
     }
+}
+
+void MainWindow::on_ROVclearButton_clicked(){
+    ui->textBrowser->clear();
 }
 
 void MainWindow::on_X_upButton_clicked()
@@ -314,6 +337,10 @@ void MainWindow::on_openSonicButton_clicked()
         ui->sonicBox->setEnabled(false);
         ui->openSonicButton->setText(QString("关闭串口"));
         ui->sonicSendButton->setEnabled(true);
+        ui->AButton->setEnabled(true);
+        ui->DButton->setEnabled(true);
+        ui->MButton->setEnabled(true);
+        ui->EButton->setEnabled(true);
     }
     else
     {
@@ -323,6 +350,10 @@ void MainWindow::on_openSonicButton_clicked()
         ui->sonicBox->setEnabled(true);
         ui->openSonicButton->setText(QString("打开串口"));
         ui->sonicSendButton->setEnabled(false);
+        ui->AButton->setEnabled(false);
+        ui->DButton->setEnabled(false);
+        ui->MButton->setEnabled(false);
+        ui->EButton->setEnabled(false);
     }
 }
 
@@ -330,6 +361,30 @@ void MainWindow::on_sonicSendButton_clicked(){
     QString sonicSend = ui->sonicSendEdit->toPlainText();
     QByteArray sonicSendBytes = sonicSend.toUtf8();
     serialSonic.write(sonicSendBytes);
+}
+
+void MainWindow::on_AButton_clicked(){
+    QString opt = "A";
+    QByteArray optBytes = opt.toUtf8();
+    serialSonic.write(optBytes);
+}
+
+void MainWindow::on_DButton_clicked(){
+    QString opt = "D";
+    QByteArray optBytes = opt.toUtf8();
+    serialSonic.write(optBytes);
+}
+
+void MainWindow::on_MButton_clicked(){
+    QString opt = "M";
+    QByteArray optBytes = opt.toUtf8();
+    serialSonic.write(optBytes);
+}
+
+void MainWindow::on_EButton_clicked(){
+    QString opt = "E";
+    QByteArray optBytes = opt.toUtf8();
+    serialSonic.write(optBytes);
 }
 
 void MainWindow::on_clearSonicRecvButton_clicked(){

@@ -382,7 +382,7 @@
    <widget class="QPushButton" name="sonicSendButton">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>240</x>
       <y>460</y>
       <width>71</width>
       <height>21</height>
@@ -537,6 +537,71 @@
     </property>
     <property name="text">
      <string>清除接收</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="ROVclearButton">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>260</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>清除接收</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="AButton">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>460</y>
+      <width>31</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>A</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="DButton">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>460</y>
+      <width>31</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>D</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="MButton">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>460</y>
+      <width>31</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>M</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="EButton">
+    <property name="geometry">
+     <rect>
+      <x>450</x>
+      <y>460</y>
+      <width>31</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>E</string>
     </property>
    </widget>
   </widget>
