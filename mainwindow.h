@@ -51,6 +51,7 @@ private:
     Ui::MainWindow *ui;
     QSerialPort serialROV;
     QSerialPort serialSonic;
+    QList<QSerialPortInfo> ports;
     int spiFd0;
     int spiFd1;
     int X=0;

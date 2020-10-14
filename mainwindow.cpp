@@ -23,8 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(&serialROV, &QSerialPort::readyRead, this, &MainWindow::serialROV_readyRead);
     QObject::connect(&serialSonic, &QSerialPort::readyRead, this, &MainWindow::serialSonic_readyRead);
 
-    ui->serialBox->clear();
-    ui->sonicBox->clear();
+
     std::thread t1(&MainWindow::serialport_refresh, this);
     t1.detach();
 
@@ -53,6 +52,30 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::serialport_refresh(){
+    //初始
+    ui->serialBox->clear();
+    ui->sonicBox->clear();
+    ports = QSerialPortInfo::availablePorts();
+    foreach(const QSerialPortInfo &info, ports){
+        ui->serialBox->addItem(info.portName());
+        ui->sonicBox->addItem(info.portName());
+    }
+    //刷新
+    while(true){
+        if(QSerialPortInfo::availablePorts().size()!=ports.size()){
+            ui->serialBox->clear();
+            ui->sonicBox->clear();
+            foreach(const QSerialPortInfo &info, QSerialPortInfo::availablePorts()){
+                ui->serialBox->addItem(info.portName());
+                ui->sonicBox->addItem(info.portName());
+            }
+            ports = QSerialPortInfo::availablePorts();
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+}
+
 void MainWindow::spi_recv(){
     pinMode(6, INPUT);
     while(true){
@@ -67,18 +90,6 @@ void MainWindow::spi_recv(){
         }
     }
 }
-
-void MainWindow::serialport_refresh(){
-    while(true){
-        foreach(const QSerialPortInfo &info, QSerialPortInfo::availablePorts()){
-
-            ui->serialBox->addItem(info.portName());
-            ui->sonicBox->addItem(info.portName());
-        }
-        sleep(1);
-    }
-}
-
 
 void MainWindow::spi_init(){
     //初始化SPI
