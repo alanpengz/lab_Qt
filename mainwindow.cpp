@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this->setWindowTitle("UWOC Comm");
+    this->setWindowTitle("UWOC Comm(v0.1)");
 
     spi_init();
     //连接serialROV serialSonic信号和槽

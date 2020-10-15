@@ -36,6 +36,8 @@ HEADERS += \
 FORMS += \
         mainwindow.ui
 
+QMAKE_LFLAGS += -no-pie
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
