@@ -44,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->DButton->setEnabled(false);
     ui->MButton->setEnabled(false);
     ui->EButton->setEnabled(false);
+    ui->looptimeEdit->setText("1000");
 }
 
 MainWindow::~MainWindow()
@@ -448,15 +449,21 @@ void MainWindow::on_loopButton_clicked(){
     if(ui->loopButton->text() == "启动定时发送"){
         ui->loopButton->setText(tr("停止定时发送"));
         ui->vlcSendButton->setEnabled(false);
+        ui->looptimeEdit->setEnabled(false);
         startLoopThread();
        }
     else{
         ui->loopButton->setText(tr("启动定时发送"));
         ui->vlcSendButton->setEnabled(true);
+        ui->looptimeEdit->setEnabled(true);
         stopLoopThread();
        }
 }
 
 void MainWindow::on_clearVLCrecvButton_clicked(){
     ui->vlcRecvtextBrowser->clear();
+}
+
+void MainWindow::on_vlcRecvtextBrowser_textChanged(){
+    ui->vlcRecvtextBrowser->moveCursor(QTextCursor::End);
 }

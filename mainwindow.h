@@ -49,7 +49,7 @@ private slots:
     void startLoopThread();
     void stopLoopThread();
     void on_clearVLCrecvButton_clicked();
-
+    void on_vlcRecvtextBrowser_textChanged();
 
 private:
     Ui::MainWindow *ui;

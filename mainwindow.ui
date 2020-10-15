@@ -645,6 +645,12 @@
       <pointsize>10</pointsize>
      </font>
     </property>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAsNeeded</enum>
+    </property>
+    <property name="sizeAdjustPolicy">
+     <enum>QAbstractScrollArea::AdjustIgnored</enum>
+    </property>
    </widget>
    <widget class="QLabel" name="label_15">
     <property name="geometry">
@@ -854,6 +860,11 @@
       <width>51</width>
       <height>21</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
     </property>
    </widget>
   </widget>
