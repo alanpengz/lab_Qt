@@ -76,7 +76,6 @@ void MainWindow::serialport_refresh(){
 }
 
 void MainWindow::spi_recv(){
-    pinMode(6, INPUT);
     while(true){
         if(digitalRead(6)){
             unsigned char vlcrecv[239];
@@ -102,6 +101,10 @@ void MainWindow::spi_init(){
        QMessageBox::about(NULL, "提示", "SPI1初始化失败！");
      }
 
+    pinMode(6, INPUT);
+    pinMode(25,OUTPUT); // 复位
+    digitalWrite(25, 1); // 复位脚置高
+
     std::thread t(&MainWindow::spi_recv, this);
     t.detach();
 }
@@ -111,55 +114,59 @@ void MainWindow::serialROV_readyRead()
 {
     //从接收缓冲区中读取数据
     QByteArray buffer = serialROV.readAll();
-    //从界面中读取以前收到的数据
-    QString recv = ui->textBrowser->toPlainText();
-    recv += QString(buffer);
-    //清空以前的显示
-    ui->textBrowser->clear();
-    //重新显示
-    ui->textBrowser->append(recv);
+    if(buffer.size()){
+        //从界面中读取以前收到的数据
+        QString recv = ui->textBrowser->toPlainText();
+        recv += QString(buffer);
+        //清空以前的显示
+        ui->textBrowser->clear();
+        //重新显示
+        ui->textBrowser->append(recv);
+    }
 }
 
 void MainWindow::serialSonic_readyRead()
 {
     // 接收显示
     QByteArray buffer = serialSonic.readAll();
-    QString show = ui->sonicRecvtextBrowser->toPlainText();
-    show += QString(buffer);
-    ui->sonicRecvtextBrowser->clear();
-    ui->sonicRecvtextBrowser->append(show);
+    if(buffer.size()){
+        QString show = ui->sonicRecvtextBrowser->toPlainText();
+        show += QString(buffer);
+        ui->sonicRecvtextBrowser->clear();
+        ui->sonicRecvtextBrowser->append(show);
 
-    // 水声控制指令解析
-    QString recv = QString(buffer);
-    QString orderKey = "Received String: ";
-    int index = recv.indexOf(orderKey);
-    if(index>=0){
-        QString orderVal = recv.mid(index+17,6); //解析出的指令
-        if(orderVal.startsWith("#") && orderVal.endsWith("$")){
-            if(!serialROV.open(QIODevice::ReadWrite)){
-                QMessageBox::about(NULL, "提示", "指令已识别,ROV串口未打开！");
-                return;
-            }
-            else{
-                QByteArray order_send = orderVal.toUtf8();
-                serialROV.write(order_send);
-                ui->sonicOrderlabel->setText(orderVal);
-                QString QX, QY, QM, QZ;
-                for(std::map<QString,QString>::iterator it = orderMap.begin();it!=orderMap.end();it++) {
-                    if(it->second==QString(orderVal[1])) QX = it->first;
-                    if(it->second==QString(orderVal[2])) QY = it->first;
-                    if(it->second==QString(orderVal[3])) QM = it->first;
-                    if(it->second==QString(orderVal[4])) QZ = it->first;
+        // 水声控制指令解析
+        QString recv = QString(buffer);
+        QString orderKey = "Received String: ";
+        int index = recv.indexOf(orderKey);
+        if(index>=0){
+            QString orderVal = recv.mid(index+17,6); //解析出的指令
+            if(orderVal.startsWith("#") && orderVal.endsWith("$")){
+                if(!serialROV.open(QIODevice::ReadWrite)){
+                    QMessageBox::about(NULL, "提示", "指令已识别,ROV串口未打开！");
+                    return;
                 }
-                // 更新全局速度
-                X = QX.toInt();
-                Y = QY.toInt();
-                M = QM.toInt();
-                Z = QZ.toInt();
-                ui->Xspeed_label->setText(QX);
-                ui->Yspeed_label->setText(QY);
-                ui->Mspeed_label->setText(QM);
-                ui->Zspeed_label->setText(QZ);
+                else{
+                    QByteArray order_send = orderVal.toUtf8();
+                    serialROV.write(order_send);
+                    ui->sonicOrderlabel->setText(orderVal);
+                    QString QX, QY, QM, QZ;
+                    for(std::map<QString,QString>::iterator it = orderMap.begin();it!=orderMap.end();it++) {
+                        if(it->second==QString(orderVal[1])) QX = it->first;
+                        if(it->second==QString(orderVal[2])) QY = it->first;
+                        if(it->second==QString(orderVal[3])) QM = it->first;
+                        if(it->second==QString(orderVal[4])) QZ = it->first;
+                    }
+                    // 更新全局速度
+                    X = QX.toInt();
+                    Y = QY.toInt();
+                    M = QM.toInt();
+                    Z = QZ.toInt();
+                    ui->Xspeed_label->setText(QX);
+                    ui->Yspeed_label->setText(QY);
+                    ui->Mspeed_label->setText(QM);
+                    ui->Zspeed_label->setText(QZ);
+                }
             }
         }
     }
