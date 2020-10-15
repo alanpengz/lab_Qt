@@ -132,11 +132,12 @@ void MainWindow::serialSonic_readyRead()
     // 水声控制指令解析
     QString recv = QString(buffer);
     QString orderKey = "Received String: ";
-    if(int index = recv.indexOf(orderKey)){
+    int index = recv.indexOf(orderKey);
+    if(index>=0){
         QString orderVal = recv.mid(index+17,6); //解析出的指令
         if(orderVal.startsWith("#") && orderVal.endsWith("$")){
             if(!serialROV.open(QIODevice::ReadWrite)){
-                QMessageBox::about(NULL, "提示", "ROV串口未打开！");
+                QMessageBox::about(NULL, "提示", "指令已识别,ROV串口未打开！");
                 return;
             }
             else{
@@ -162,12 +163,6 @@ void MainWindow::serialSonic_readyRead()
             }
         }
     }
-    else{
-        QString orderNotFound = "NotFound";
-        ui->sonicOrderlabel->setText(orderNotFound);
-    }
-    serialSonic.clear();
-    buffer.clear();
 }
 
 //ROV
@@ -333,7 +328,7 @@ void MainWindow::on_openSonicButton_clicked()
     if(ui->openSonicButton->text()==QString("打开串口"))
     {
         serialSonic.setPortName(ui->sonicBox->currentText());
-        serialSonic.setBaudRate(460800);
+        serialSonic.setBaudRate(115200);
         serialSonic.setDataBits(QSerialPort::Data8);
         serialSonic.setParity(QSerialPort::NoParity);
         serialSonic.setStopBits(QSerialPort::OneStop);

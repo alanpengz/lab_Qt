@@ -268,7 +268,7 @@
      <rect>
       <x>220</x>
       <y>30</y>
-      <width>361</width>
+      <width>251</width>
       <height>221</height>
      </rect>
     </property>
@@ -515,7 +515,7 @@
     <property name="geometry">
      <rect>
       <x>490</x>
-      <y>280</y>
+      <y>120</y>
       <width>171</width>
       <height>23</height>
      </rect>
@@ -533,14 +533,14 @@
     <property name="geometry">
      <rect>
       <x>490</x>
-      <y>300</y>
+      <y>140</y>
       <width>291</width>
-      <height>151</height>
+      <height>301</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>8</pointsize>
+      <pointsize>6</pointsize>
      </font>
     </property>
    </widget>
@@ -687,7 +687,7 @@
    <widget class="QPushButton" name="clearSonicRecvButton">
     <property name="geometry">
      <rect>
-      <x>610</x>
+      <x>600</x>
       <y>450</y>
       <width>71</width>
       <height>21</height>
@@ -723,8 +723,8 @@
    <widget class="QPushButton" name="ROVclearButton">
     <property name="geometry">
      <rect>
-      <x>370</x>
-      <y>260</y>
+      <x>310</x>
+      <y>250</y>
       <width>61</width>
       <height>21</height>
      </rect>
