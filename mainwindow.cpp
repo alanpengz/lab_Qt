@@ -103,6 +103,8 @@ void MainWindow::spi_init(){
 
     pinMode(6, INPUT);
     pinMode(25,OUTPUT); // 复位
+    digitalWrite(25, 0);
+    sleep(1);
     digitalWrite(25, 1); // 复位脚置高
 
     std::thread t(&MainWindow::spi_recv, this);
