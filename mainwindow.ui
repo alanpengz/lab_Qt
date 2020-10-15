@@ -616,7 +616,7 @@
    <widget class="QPushButton" name="vlcSendButton">
     <property name="geometry">
      <rect>
-      <x>300</x>
+      <x>220</x>
       <y>660</y>
       <width>71</width>
       <height>21</height>
@@ -808,6 +808,52 @@
     </property>
     <property name="text">
      <string>E</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="loopButton">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>660</y>
+      <width>101</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>启动定时发送</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_16">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>680</y>
+      <width>91</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>定时间隔(ms): </string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="looptimeEdit">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>680</y>
+      <width>51</width>
+      <height>21</height>
+     </rect>
     </property>
    </widget>
   </widget>

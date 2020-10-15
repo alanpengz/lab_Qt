@@ -406,6 +406,7 @@ void MainWindow::on_clearSonicRecvButton_clicked(){
     ui->sonicRecvtextBrowser->clear();
 }
 
+//VLC
 void MainWindow::on_vlcSendButton_clicked(){
         char vlcsend[239];
         QString spiSend = ui->vlcSendtextEdit->toPlainText();
@@ -414,6 +415,46 @@ void MainWindow::on_vlcSendButton_clicked(){
 
         strcpy(vlcsend, tmp);
         wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
+}
+
+void MainWindow::startLoopThread(){
+    if(!loop){
+           loop = true;
+           std::thread th(std::bind(&MainWindow::loopSend,this));
+           th.detach();
+       }
+}
+
+void MainWindow::stopLoopThread(){
+    loop = false;
+}
+
+void MainWindow::loopSend(){
+    while(loop){
+        QString intervaltime = ui->looptimeEdit->text();
+        int interval = intervaltime.toInt();
+
+        char vlcsend[239];
+        QString spiSend = ui->vlcSendtextEdit->toPlainText();
+        QByteArray spiSendBytes = spiSend.toUtf8();
+        char* tmp = spiSendBytes.data();
+        strcpy(vlcsend, tmp);
+        wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
+        std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+    }
+}
+
+void MainWindow::on_loopButton_clicked(){
+    if(ui->loopButton->text() == "启动定时发送"){
+        ui->loopButton->setText(tr("停止定时发送"));
+        ui->vlcSendButton->setEnabled(false);
+        startLoopThread();
+       }
+    else{
+        ui->loopButton->setText(tr("启动定时发送"));
+        ui->vlcSendButton->setEnabled(true);
+        stopLoopThread();
+       }
 }
 
 void MainWindow::on_clearVLCrecvButton_clicked(){

@@ -44,6 +44,10 @@ private slots:
     void on_clearSonicRecvButton_clicked();
 
     void on_vlcSendButton_clicked();
+    void on_loopButton_clicked();
+    void loopSend();
+    void startLoopThread();
+    void stopLoopThread();
     void on_clearVLCrecvButton_clicked();
 
 
@@ -58,6 +62,7 @@ private:
     int Y=0;
     int M=0;
     int Z=0;
+    bool loop = false;
 };
 
 #endif // MAINWINDOW_H
