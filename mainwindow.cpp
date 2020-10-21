@@ -380,25 +380,25 @@ void MainWindow::on_sonicSendButton_clicked(){
 }
 
 void MainWindow::on_AButton_clicked(){
-    QString opt = "A";
+    QString opt = "A\n\r";
     QByteArray optBytes = opt.toUtf8();
     serialSonic.write(optBytes);
 }
 
 void MainWindow::on_DButton_clicked(){
-    QString opt = "D";
+    QString opt = "D\n\r";
     QByteArray optBytes = opt.toUtf8();
     serialSonic.write(optBytes);
 }
 
 void MainWindow::on_MButton_clicked(){
-    QString opt = "M";
+    QString opt = "M\n\r";
     QByteArray optBytes = opt.toUtf8();
     serialSonic.write(optBytes);
 }
 
 void MainWindow::on_EButton_clicked(){
-    QString opt = "E";
+    QString opt = "E\n\r";
     QByteArray optBytes = opt.toUtf8();
     serialSonic.write(optBytes);
 }
