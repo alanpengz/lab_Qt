@@ -408,12 +408,56 @@ void MainWindow::on_clearSonicRecvButton_clicked(){
 }
 
 //VLC
+QString gettime(){
+      time_t rawtime;
+      struct tm *ptminfo;
+      time(&rawtime);
+      ptminfo = localtime(&rawtime);
+
+      QString sec;
+      if(ptminfo->tm_sec < 10){
+          sec = "0" + QString::number(ptminfo->tm_sec);
+      }
+      else sec = QString::number(ptminfo->tm_sec);
+
+      QString min;
+      if(ptminfo->tm_min < 10){
+          min = "0" + QString::number(ptminfo->tm_min);
+      }
+      else min = QString::number(ptminfo->tm_min);
+
+      QString hour;
+      if(ptminfo->tm_hour < 10){
+          hour = "0" + QString::number(ptminfo->tm_hour);
+      }
+      else hour = QString::number(ptminfo->tm_hour);
+
+      QString day;
+      if(ptminfo->tm_mday < 10){
+          day = "0" + QString::number(ptminfo->tm_mday);
+      }
+      else day = QString::number(ptminfo->tm_mday);
+
+      QString mon;
+      if(ptminfo->tm_mon +1 < 10){
+          mon = "0" + QString::number(ptminfo->tm_mon+1);
+      }
+      else mon = QString::number(ptminfo->tm_mon+1);
+
+      QString year = QString::number(ptminfo->tm_year + 1900);
+      return year+"-"+mon+"-"+day+" "+hour+":"+min+":"+sec+"\n";
+  }
+
 void MainWindow::on_vlcSendButton_clicked(){
         char vlcsend[239];
-        QString spiSend = ui->vlcSendtextEdit->toPlainText();
+        QString spiSend;
+        if(ui->timecheckBox->isChecked()){
+            spiSend = gettime() + ui->vlcSendtextEdit->toPlainText();
+        }
+        else spiSend = ui->vlcSendtextEdit->toPlainText();
+
         QByteArray spiSendBytes = spiSend.toUtf8();
         char* tmp = spiSendBytes.data();
-
         strcpy(vlcsend, tmp);
         wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
 }
@@ -436,7 +480,12 @@ void MainWindow::loopSend(){
         int interval = intervaltime.toInt();
 
         char vlcsend[239];
-        QString spiSend = ui->vlcSendtextEdit->toPlainText();
+        QString spiSend;
+        if(ui->timecheckBox->isChecked()){
+            spiSend = gettime() + ui->vlcSendtextEdit->toPlainText();
+        }
+        else spiSend = ui->vlcSendtextEdit->toPlainText();
+
         QByteArray spiSendBytes = spiSend.toUtf8();
         char* tmp = spiSendBytes.data();
         strcpy(vlcsend, tmp);
