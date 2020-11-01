@@ -1,6 +1,7 @@
 //mainwindow.cpp
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "crc.h"
 #include <QMessageBox>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
@@ -79,13 +80,39 @@ void MainWindow::serialport_refresh(){
 void MainWindow::spi_recv(){
     while(true){
         if(digitalRead(6)){
+            all_counts++;
             unsigned char vlcrecv[239];
             wiringPiSPIDataRW(1, vlcrecv, 239);
             char* tmp = (char*)vlcrecv;
+//            // crc
+//            char* crc = new char[5];
+//            for(int i=0; i<4; i++){
+//                crc[i] = tmp[i];
+//            }
+//            // data
+//            for(int i=0; i<5; i++){
+//                tmp++;
+//            }
 
+            int len = strlen(tmp);
+            QString lens = QString::number(len);
             QString spirecv = QString(tmp);
             ui->vlcRecvtextBrowser->append(spirecv);
+            //统计误码率
+            if(wumalv_on){
+                uint32_t crc_res = getCRC(tmp, strlen(tmp));
+                char* crc_ret = new char[10];
+                snprintf(crc_ret, sizeof(crc_ret), "%d", crc_res);
+
+//                if(strcmp(crc_ret, crc)){
+//                    yes_counts++;
+//                }
+                wumalv = yes_counts / all_counts;
+                ui->label_wumalv->setText(QString::number(wumalv));
+                delete crc_ret;
+            }
             memset(vlcrecv, 0, 0);
+//            delete crc;
         }
     }
 }
@@ -113,8 +140,7 @@ void MainWindow::spi_init(){
 }
 
 
-void MainWindow::serialROV_readyRead()
-{
+void MainWindow::serialROV_readyRead(){
     //从接收缓冲区中读取数据
     QByteArray buffer = serialROV.readAll();
     if(buffer.size()){
@@ -128,8 +154,7 @@ void MainWindow::serialROV_readyRead()
     }
 }
 
-void MainWindow::serialSonic_readyRead()
-{
+void MainWindow::serialSonic_readyRead(){
     // 接收显示
     QByteArray buffer = serialSonic.readAll();
     if(buffer.size()){
@@ -176,8 +201,7 @@ void MainWindow::serialSonic_readyRead()
 }
 
 //ROV
-void MainWindow::on_openButton_clicked()
-{
+void MainWindow::on_openButton_clicked(){
     if(ui->openButton->text()==QString("打开串口"))
     {
         serialROV.setPortName(ui->serialBox->currentText());
@@ -230,8 +254,7 @@ void MainWindow::on_ROVclearButton_clicked(){
     ui->textBrowser->clear();
 }
 
-void MainWindow::on_X_upButton_clicked()
-{
+void MainWindow::on_X_upButton_clicked(){
     if(X<7) X += 1;
     else X = 7;
     ui->Xspeed_label->setText(QString::number(X));
@@ -241,8 +264,7 @@ void MainWindow::on_X_upButton_clicked()
     serialROV.write(order_send);
 }
 
-void MainWindow::on_X_downButton_clicked()
-{
+void MainWindow::on_X_downButton_clicked(){
     if(X>-7) X -= 1;
     else X = -7;
     ui->Xspeed_label->setText(QString::number(X));
@@ -252,8 +274,7 @@ void MainWindow::on_X_downButton_clicked()
     serialROV.write(order_send);
 }
 
-void MainWindow::on_Y_upButton_clicked()
-{
+void MainWindow::on_Y_upButton_clicked(){
     if(Y<7) Y += 1;
     else Y = 7;
     ui->Yspeed_label->setText(QString::number(Y));
@@ -263,8 +284,7 @@ void MainWindow::on_Y_upButton_clicked()
     serialROV.write(order_send);
 }
 
-void MainWindow::on_Y_downButton_clicked()
-{
+void MainWindow::on_Y_downButton_clicked(){
     if(Y>-7) Y -= 1;
     else Y = -7;
     ui->Yspeed_label->setText(QString::number(Y));
@@ -274,8 +294,7 @@ void MainWindow::on_Y_downButton_clicked()
     serialROV.write(order_send);
 }
 
-void MainWindow::on_M_upButton_clicked()
-{
+void MainWindow::on_M_upButton_clicked(){
     if(M<7) M += 1;
     else M = 7;
     ui->Mspeed_label->setText(QString::number(M));
@@ -285,8 +304,7 @@ void MainWindow::on_M_upButton_clicked()
     serialROV.write(order_send);
 }
 
-void MainWindow::on_M_downButton_clicked()
-{
+void MainWindow::on_M_downButton_clicked(){
     if(M>-7) M -= 1;
     else M = -7;
     ui->Mspeed_label->setText(QString::number(M));
@@ -296,8 +314,7 @@ void MainWindow::on_M_downButton_clicked()
     serialROV.write(order_send);
 }
 
-void MainWindow::on_Z_upButton_clicked()
-{
+void MainWindow::on_Z_upButton_clicked(){
     if(Z<7) Z += 1;
     else Z = 7;
     ui->Zspeed_label->setText(QString::number(Z));
@@ -307,8 +324,7 @@ void MainWindow::on_Z_upButton_clicked()
     serialROV.write(order_send);
 }
 
-void MainWindow::on_Z_downButton_clicked()
-{
+void MainWindow::on_Z_downButton_clicked(){
     if(Z>-7) Z -= 1;
     else Z = -7;
     ui->Zspeed_label->setText(QString::number(Z));
@@ -318,8 +334,7 @@ void MainWindow::on_Z_downButton_clicked()
     serialROV.write(order_send);
 }
 
-void MainWindow::on_speedResetButton_clicked()
-{
+void MainWindow::on_speedResetButton_clicked(){
     X=0;Y=0;M=0;Z=0;
     ui->Xspeed_label->setText(QString::number(X));
     ui->Yspeed_label->setText(QString::number(Y));
@@ -333,8 +348,7 @@ void MainWindow::on_speedResetButton_clicked()
 
 
 //Sonic
-void MainWindow::on_openSonicButton_clicked()
-{
+void MainWindow::on_openSonicButton_clicked(){
     if(ui->openSonicButton->text()==QString("打开串口"))
     {
         serialSonic.setPortName(ui->sonicBox->currentText());
@@ -458,7 +472,16 @@ void MainWindow::on_vlcSendButton_clicked(){
 
         QByteArray spiSendBytes = spiSend.toUtf8();
         char* tmp = spiSendBytes.data();
-        strcpy(vlcsend, tmp);
+        // add crc
+        uint32_t crc_code = getCRC(tmp, strlen(tmp));
+        char crc[239];
+        crc[0] = crc_code >> 24;
+        crc[1] = crc_code >> 16;
+        crc[2] = crc_code >> 8;
+        crc[3] = crc_code;
+
+        strcat(crc, tmp);
+        strcpy(vlcsend, crc);
         wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
 }
 
@@ -488,7 +511,13 @@ void MainWindow::loopSend(){
 
         QByteArray spiSendBytes = spiSend.toUtf8();
         char* tmp = spiSendBytes.data();
-        strcpy(vlcsend, tmp);
+        // add crc
+        uint32_t crc_code = getCRC(tmp, strlen(tmp));
+        char crc[239];
+        snprintf(crc, sizeof(crc), "%d", crc_code);
+
+        strcat(crc, tmp);
+        strcpy(vlcsend, crc);
         wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
         std::this_thread::sleep_for(std::chrono::milliseconds(interval));
     }
@@ -515,4 +544,24 @@ void MainWindow::on_clearVLCrecvButton_clicked(){
 
 void MainWindow::on_vlcRecvtextBrowser_textChanged(){
     ui->vlcRecvtextBrowser->moveCursor(QTextCursor::End);
+}
+
+void MainWindow::on_wumalvButton_clicked(){
+    if(ui->wumalvButton->text()==QString("开始统计误码率")){
+        ui->wumalvButton->setText(tr("停止统计误码率"));
+        ui->clearWumalvButton->setEnabled(false);
+        wumalv_on = true;
+    }
+    else{
+        ui->wumalvButton->setText(tr("开始统计误码率"));
+        ui->clearWumalvButton->setEnabled(true);
+        wumalv = false;
+    }
+}
+
+void MainWindow::on_clearWumalvButton_clicked(){
+    wumalv = 0;
+    all_counts = 0;
+    yes_counts = 0;
+    ui->label_wumalv->setText("0");
 }

@@ -31,7 +31,8 @@ SOURCES += \
         mainwindow.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    crc.h
 
 FORMS += \
         mainwindow.ui

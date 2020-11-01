@@ -51,6 +51,10 @@ private slots:
     void on_clearVLCrecvButton_clicked();
     void on_vlcRecvtextBrowser_textChanged();
 
+    void on_wumalvButton_clicked();
+
+    void on_clearWumalvButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     QSerialPort serialROV;
@@ -63,6 +67,10 @@ private:
     int M=0;
     int Z=0;
     bool loop = false;
+    bool wumalv_on = false;
+    double wumalv = 0;
+    int all_counts = 0;
+    int yes_counts = 0;
 };
 
 #endif // MAINWINDOW_H
