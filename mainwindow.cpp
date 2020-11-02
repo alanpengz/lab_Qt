@@ -46,6 +46,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->MButton->setEnabled(false);
     ui->EButton->setEnabled(false);
     ui->looptimeEdit->setText("1000");
+    ui->wumalvTimeEdit->setText("1000");
+    ui->label_wumalv->setText("0.0000");
 }
 
 MainWindow::~MainWindow()
@@ -80,7 +82,6 @@ void MainWindow::serialport_refresh(){
 void MainWindow::spi_recv(){
     while(true){
         if(digitalRead(6)){
-            all_counts++;
             unsigned char vlcrecv[239];
             wiringPiSPIDataRW(1, vlcrecv, 239);
             char* tmp = (char*)vlcrecv;
@@ -98,22 +99,20 @@ void MainWindow::spi_recv(){
             QString lens = QString::number(len);
             QString spirecv = QString(tmp);
             ui->vlcRecvtextBrowser->append(spirecv);
-            //统计误码率
-            if(wumalv_on){
-                uint32_t crc_res = getCRC(tmp, strlen(tmp));
-                char* crc_ret = new char[10];
-                snprintf(crc_ret, sizeof(crc_ret), "%d", crc_res);
 
-//                if(strcmp(crc_ret, crc)){
-//                    yes_counts++;
-//                }
-                wumalv = yes_counts / all_counts;
-                ui->label_wumalv->setText(QString::number(wumalv));
-                delete crc_ret;
+            //统计误码率
+            if(ui->wumalvRecvcheckBox->isChecked()){
+                QString words = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                for(int i=0; i<min(words.size(), spirecv.size());i++){
+                    if(spirecv[i]==words[i]) Ycounts++;
+                    Acounts++;
+                }
+                wumalv = Ycounts / Acounts;
+                ui->label_wumalv->setText(QString::number(wumalv, 10, 4));
             }
             memset(vlcrecv, 0, 0);
-//            delete crc;
-        }
+//          delete crc;
+         }
     }
 }
 
@@ -130,7 +129,9 @@ void MainWindow::spi_init(){
      }
 
     pinMode(6, INPUT);
+//    pinMode(24, OUTPUT);
     pinMode(25,OUTPUT); // 复位
+//    digitalWrite(24, 0);
     digitalWrite(25, 0);
     sleep(1);
     digitalWrite(25, 1); // 复位脚置高
@@ -463,42 +464,45 @@ QString gettime(){
   }
 
 void MainWindow::on_vlcSendButton_clicked(){
-        char vlcsend[239];
-        QString spiSend;
-        if(ui->timecheckBox->isChecked()){
-            spiSend = gettime() + ui->vlcSendtextEdit->toPlainText();
-        }
-        else spiSend = ui->vlcSendtextEdit->toPlainText();
+    digitalWrite(24, 1);
+    char vlcsend[239];
+    QString spiSend;
+    if(ui->timecheckBox->isChecked()){
+        spiSend = gettime() + ui->vlcSendtextEdit->toPlainText();
+    }
+    else spiSend = ui->vlcSendtextEdit->toPlainText();
 
-        QByteArray spiSendBytes = spiSend.toUtf8();
-        char* tmp = spiSendBytes.data();
-        // add crc
-        uint32_t crc_code = getCRC(tmp, strlen(tmp));
-        char crc[239];
-        crc[0] = crc_code >> 24;
-        crc[1] = crc_code >> 16;
-        crc[2] = crc_code >> 8;
-        crc[3] = crc_code;
+    QByteArray spiSendBytes = spiSend.toUtf8();
+    char* tmp = spiSendBytes.data();
+//        // add crc
+//        uint32_t crc_code = getCRC(tmp, strlen(tmp));
+//        char crc[239];
+//        crc[0] = crc_code >> 24;
+//        crc[1] = crc_code >> 16;
+//        crc[2] = crc_code >> 8;
+//        crc[3] = crc_code;
 
-        strcat(crc, tmp);
-        strcpy(vlcsend, crc);
-        wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
+//        strcat(crc, tmp);
+    strcpy(vlcsend, tmp);
+    wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    digitalWrite(24, 0);
 }
 
-void MainWindow::startLoopThread(){
-    if(!loop){
-           loop = true;
-           std::thread th(std::bind(&MainWindow::loopSend,this));
+void MainWindow::start_spi_LoopThread(){
+    if(!spi_send_loop){
+           spi_send_loop = true;
+           std::thread th(std::bind(&MainWindow::spi_loopSend,this));
            th.detach();
        }
 }
 
-void MainWindow::stopLoopThread(){
-    loop = false;
+void MainWindow::stop_spi_LoopThread(){
+    spi_send_loop = false;
 }
 
-void MainWindow::loopSend(){
-    while(loop){
+void MainWindow::spi_loopSend(){
+    while(spi_send_loop){
         QString intervaltime = ui->looptimeEdit->text();
         int interval = intervaltime.toInt();
 
@@ -511,13 +515,8 @@ void MainWindow::loopSend(){
 
         QByteArray spiSendBytes = spiSend.toUtf8();
         char* tmp = spiSendBytes.data();
-        // add crc
-        uint32_t crc_code = getCRC(tmp, strlen(tmp));
-        char crc[239];
-        snprintf(crc, sizeof(crc), "%d", crc_code);
 
-        strcat(crc, tmp);
-        strcpy(vlcsend, crc);
+        strcpy(vlcsend, tmp);
         wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
         std::this_thread::sleep_for(std::chrono::milliseconds(interval));
     }
@@ -528,13 +527,13 @@ void MainWindow::on_loopButton_clicked(){
         ui->loopButton->setText(tr("停止定时发送"));
         ui->vlcSendButton->setEnabled(false);
         ui->looptimeEdit->setEnabled(false);
-        startLoopThread();
+        start_spi_LoopThread();
        }
     else{
         ui->loopButton->setText(tr("启动定时发送"));
         ui->vlcSendButton->setEnabled(true);
         ui->looptimeEdit->setEnabled(true);
-        stopLoopThread();
+        stop_spi_LoopThread();
        }
 }
 
@@ -546,22 +545,53 @@ void MainWindow::on_vlcRecvtextBrowser_textChanged(){
     ui->vlcRecvtextBrowser->moveCursor(QTextCursor::End);
 }
 
+// VLC误码率
+void MainWindow::wumalv_loopSend(){
+    while(wumalv_send_loop){
+        QString wumalvtime = ui->wumalvTimeEdit->text();
+        int interval = wumalvtime.toInt();
+        char vlcsend[239];
+        QString spiSend = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        QByteArray spiSendBytes = spiSend.toUtf8();
+        char* tmp = spiSendBytes.data();
+        strcpy(vlcsend, tmp);
+
+        wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
+        wumalv_sendnums++;
+        ui->label_wumalv_sendnums->setText(QString::number(wumalv_sendnums));
+        std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+    }
+}
+
 void MainWindow::on_wumalvButton_clicked(){
-    if(ui->wumalvButton->text()==QString("开始统计误码率")){
-        ui->wumalvButton->setText(tr("停止统计误码率"));
+    if(ui->wumalvButton->text()==QString("启动误码率探测")){
+        ui->wumalvButton->setText(tr("停止误码率探测"));
+        ui->clearwumalvSendNumsButton->setEnabled(false);
+        ui->wumalvTimeEdit->setEnabled(false);
         ui->clearWumalvButton->setEnabled(false);
-        wumalv_on = true;
+        if(!wumalv_send_loop){
+               wumalv_send_loop = true;
+               std::thread th(std::bind(&MainWindow::wumalv_loopSend,this));
+               th.detach();
+           }
     }
     else{
-        ui->wumalvButton->setText(tr("开始统计误码率"));
+        ui->wumalvButton->setText(tr("启动误码率探测"));
+        ui->clearwumalvSendNumsButton->setEnabled(true);
+        ui->wumalvTimeEdit->setEnabled(true);
         ui->clearWumalvButton->setEnabled(true);
-        wumalv = false;
+        wumalv_send_loop = false;
     }
 }
 
 void MainWindow::on_clearWumalvButton_clicked(){
     wumalv = 0;
-    all_counts = 0;
-    yes_counts = 0;
-    ui->label_wumalv->setText("0");
+    Acounts = 0;
+    Ycounts = 0;
+    ui->label_wumalv->setText("0.0000");
+}
+
+void MainWindow::on_clearwumalvSendNumsButton_clicked(){
+    wumalv_sendnums = 0;
+    ui->label_wumalv_sendnums->setText(QString::number(wumalv_sendnums));
 }

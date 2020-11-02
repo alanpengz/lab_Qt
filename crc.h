@@ -76,12 +76,4 @@ uint16_t checksum(unsigned char* buf, int nLength){
     return (~sum) & 0xffff;
 }
 
-
-
-
-
-
-
-
-
 #endif // CRC_H

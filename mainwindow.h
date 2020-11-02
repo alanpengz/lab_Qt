@@ -45,15 +45,17 @@ private slots:
 
     void on_vlcSendButton_clicked();
     void on_loopButton_clicked();
-    void loopSend();
-    void startLoopThread();
-    void stopLoopThread();
+    void spi_loopSend();
+    void start_spi_LoopThread();
+    void stop_spi_LoopThread();
     void on_clearVLCrecvButton_clicked();
     void on_vlcRecvtextBrowser_textChanged();
 
     void on_wumalvButton_clicked();
-
+    void wumalv_loopSend();
     void on_clearWumalvButton_clicked();
+
+    void on_clearwumalvSendNumsButton_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -66,11 +68,13 @@ private:
     int Y=0;
     int M=0;
     int Z=0;
-    bool loop = false;
-    bool wumalv_on = false;
+    bool spi_send_loop = false;
+    bool wumalv_send_loop = false;
+    bool wumalv_recv_on = false;
     double wumalv = 0;
-    int all_counts = 0;
-    int yes_counts = 0;
+    double Acounts = 0;
+    double Ycounts = 0;
+    int wumalv_sendnums = 0;
 };
 
 #endif // MAINWINDOW_H
