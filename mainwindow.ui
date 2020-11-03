@@ -7,8 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>797</width>
-    <height>782</height>
+    <height>805</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>10</pointsize>
+   </font>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
@@ -823,7 +828,7 @@
    <widget class="QPushButton" name="loopButton">
     <property name="geometry">
      <rect>
-      <x>310</x>
+      <x>320</x>
       <y>660</y>
       <width>101</width>
       <height>21</height>
@@ -948,7 +953,7 @@
      <rect>
       <x>60</x>
       <y>630</y>
-      <width>73</width>
+      <width>151</width>
       <height>23</height>
      </rect>
     </property>
@@ -1069,6 +1074,32 @@
      <string>清空</string>
     </property>
    </widget>
+   <widget class="QCheckBox" name="ParadoxcheckBox">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>700</y>
+      <width>106</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>收发互斥</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="CRCcheckBox">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>700</y>
+      <width>101</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>CRC32校验</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -1076,7 +1107,7 @@
      <x>0</x>
      <y>0</y>
      <width>797</width>
-     <height>29</height>
+     <height>25</height>
     </rect>
    </property>
   </widget>

@@ -85,18 +85,29 @@ void MainWindow::spi_recv(){
             unsigned char vlcrecv[239];
             wiringPiSPIDataRW(1, vlcrecv, 239);
             char* tmp = (char*)vlcrecv;
-//            // crc
-//            char* crc = new char[5];
-//            for(int i=0; i<4; i++){
-//                crc[i] = tmp[i];
-//            }
-//            // data
-//            for(int i=0; i<5; i++){
-//                tmp++;
-//            }
 
-            int len = strlen(tmp);
-            QString lens = QString::number(len);
+            // CRC
+            if(ui->CRCcheckBox->isChecked()){
+                char* crc_recv = new char[4];
+                for(int i=0; i<4; i++){
+                    crc_recv[i] = tmp[i];
+                }
+                // data
+                for(int i=0; i<4; i++){
+                    tmp++;
+                }
+                uint32_t crc_code = getCRC(tmp, strlen(tmp));
+                char crc_cal[4];
+                crc_cal[0] = crc_code >> 24;
+                crc_cal[1] = crc_code >> 16;
+                crc_cal[2] = crc_code >> 8;
+                crc_cal[3] = crc_code;
+                if(strcmp(crc_recv, crc_cal)){
+                    // CRC check right
+                }
+                delete crc_recv;
+            }
+
             QString spirecv = QString(tmp);
             ui->vlcRecvtextBrowser->append(spirecv);
 
@@ -107,11 +118,11 @@ void MainWindow::spi_recv(){
                     if(spirecv[i]==words[i]) Ycounts++;
                     Acounts++;
                 }
-                wumalv = Ycounts / Acounts;
-                ui->label_wumalv->setText(QString::number(wumalv, 10, 4));
+                wumalv = 1-(Ycounts / Acounts);
+                ui->label_wumalv->setText(QString::number(wumalv, 10, 6));
             }
             memset(vlcrecv, 0, 0);
-//          delete crc;
+
          }
     }
 }
@@ -129,9 +140,9 @@ void MainWindow::spi_init(){
      }
 
     pinMode(6, INPUT);
-//    pinMode(24, OUTPUT);
+    pinMode(24, OUTPUT); // 收发互斥
     pinMode(25,OUTPUT); // 复位
-//    digitalWrite(24, 0);
+    digitalWrite(24, 0);
     digitalWrite(25, 0);
     sleep(1);
     digitalWrite(25, 1); // 复位脚置高
@@ -464,7 +475,10 @@ QString gettime(){
   }
 
 void MainWindow::on_vlcSendButton_clicked(){
-    digitalWrite(24, 1);
+    if(ui->ParadoxcheckBox->isChecked()){
+        digitalWrite(24, 1);
+    }
+
     char vlcsend[239];
     QString spiSend;
     if(ui->timecheckBox->isChecked()){
@@ -474,19 +488,25 @@ void MainWindow::on_vlcSendButton_clicked(){
 
     QByteArray spiSendBytes = spiSend.toUtf8();
     char* tmp = spiSendBytes.data();
-//        // add crc
-//        uint32_t crc_code = getCRC(tmp, strlen(tmp));
-//        char crc[239];
-//        crc[0] = crc_code >> 24;
-//        crc[1] = crc_code >> 16;
-//        crc[2] = crc_code >> 8;
-//        crc[3] = crc_code;
 
-//        strcat(crc, tmp);
-    strcpy(vlcsend, tmp);
+    // add crc
+    if(ui->CRCcheckBox->isChecked()){
+        uint32_t crc_code = getCRC(tmp, strlen(tmp));
+        vlcsend[0] = crc_code >> 24;
+        vlcsend[1] = crc_code >> 16;
+        vlcsend[2] = crc_code >> 8;
+        vlcsend[3] = crc_code;
+        strcat(vlcsend, tmp);
+    }
+    else strcpy(vlcsend, tmp);
+
     wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    digitalWrite(24, 0);
+    memset(vlcsend, 0, 0);
+
+    if(ui->ParadoxcheckBox->isChecked()){
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        digitalWrite(24, 0);
+    }
 }
 
 void MainWindow::start_spi_LoopThread(){
@@ -502,6 +522,9 @@ void MainWindow::stop_spi_LoopThread(){
 }
 
 void MainWindow::spi_loopSend(){
+    if(ui->ParadoxcheckBox->isChecked()){
+        digitalWrite(24, 1);
+    }
     while(spi_send_loop){
         QString intervaltime = ui->looptimeEdit->text();
         int interval = intervaltime.toInt();
@@ -516,9 +539,23 @@ void MainWindow::spi_loopSend(){
         QByteArray spiSendBytes = spiSend.toUtf8();
         char* tmp = spiSendBytes.data();
 
-        strcpy(vlcsend, tmp);
+        // CRC
+        if(ui->CRCcheckBox->isChecked()){
+            uint32_t crc_code = getCRC(tmp, strlen(tmp));
+            vlcsend[0] = crc_code >> 24;
+            vlcsend[1] = crc_code >> 16;
+            vlcsend[2] = crc_code >> 8;
+            vlcsend[3] = crc_code;
+            strcat(vlcsend, tmp);
+        }
+        else strcpy(vlcsend, tmp);
+
         wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
         std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+    }
+    if(ui->ParadoxcheckBox->isChecked()){
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        digitalWrite(24, 0);
     }
 }
 
@@ -547,6 +584,9 @@ void MainWindow::on_vlcRecvtextBrowser_textChanged(){
 
 // VLC误码率
 void MainWindow::wumalv_loopSend(){
+    if(ui->ParadoxcheckBox->isChecked()){
+        digitalWrite(24, 1);
+    }
     while(wumalv_send_loop){
         QString wumalvtime = ui->wumalvTimeEdit->text();
         int interval = wumalvtime.toInt();
@@ -554,12 +594,26 @@ void MainWindow::wumalv_loopSend(){
         QString spiSend = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         QByteArray spiSendBytes = spiSend.toUtf8();
         char* tmp = spiSendBytes.data();
-        strcpy(vlcsend, tmp);
+
+        // CRC
+        if(ui->CRCcheckBox->isChecked()){
+            uint32_t crc_code = getCRC(tmp, strlen(tmp));
+            vlcsend[0] = crc_code >> 24;
+            vlcsend[1] = crc_code >> 16;
+            vlcsend[2] = crc_code >> 8;
+            vlcsend[3] = crc_code;
+            strcat(vlcsend, tmp);
+        }
+        else strcpy(vlcsend, tmp);
 
         wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
         wumalv_sendnums++;
         ui->label_wumalv_sendnums->setText(QString::number(wumalv_sendnums));
         std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+    }
+    if(ui->ParadoxcheckBox->isChecked()){
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        digitalWrite(24, 0);
     }
 }
 
