@@ -42,6 +42,7 @@ private slots:
     void on_MButton_clicked();
     void on_EButton_clicked();
     void on_clearSonicRecvButton_clicked();
+    void on_sonicSendClearButton_clicked();
 
     void on_vlcSendButton_clicked();
     void on_loopButton_clicked();
@@ -49,12 +50,12 @@ private slots:
     void start_spi_LoopThread();
     void stop_spi_LoopThread();
     void on_clearVLCrecvButton_clicked();
+    void on_vlcSendClearButton_clicked();
     void on_vlcRecvtextBrowser_textChanged();
 
     void on_wumalvButton_clicked();
     void wumalv_loopSend();
     void on_clearWumalvButton_clicked();
-
     void on_clearwumalvSendNumsButton_clicked();
 
 private:
@@ -68,6 +69,7 @@ private:
     int Y=0;
     int M=0;
     int Z=0;
+    bool crc_check_right = false;
     bool spi_send_loop = false;
     bool wumalv_send_loop = false;
     bool wumalv_recv_on = false;

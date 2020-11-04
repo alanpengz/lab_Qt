@@ -45,6 +45,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->DButton->setEnabled(false);
     ui->MButton->setEnabled(false);
     ui->EButton->setEnabled(false);
+    ui->sonicSendClearButton->setEnabled(false);
     ui->looptimeEdit->setText("1000");
     ui->wumalvTimeEdit->setText("1000");
     ui->label_wumalv->setText("0.0000");
@@ -82,34 +83,45 @@ void MainWindow::serialport_refresh(){
 void MainWindow::spi_recv(){
     while(true){
         if(digitalRead(6)){
-            unsigned char vlcrecv[239];
+            unsigned char vlcrecv[239]={0};
+            unsigned char* tmp = vlcrecv;
             wiringPiSPIDataRW(1, vlcrecv, 239);
-            char* tmp = (char*)vlcrecv;
 
             // CRC
-            if(ui->CRCcheckBox->isChecked()){
+            if(ui->CRCrecvcheckBox->isChecked()){
                 char* crc_recv = new char[4];
                 for(int i=0; i<4; i++){
-                    crc_recv[i] = tmp[i];
+                    crc_recv[i] = vlcrecv[i];
                 }
                 // data
                 for(int i=0; i<4; i++){
                     tmp++;
                 }
-                uint32_t crc_code = getCRC(tmp, strlen(tmp));
+                uint32_t crc_code = getCRC((char*)tmp, strlen((char*)tmp));
                 char crc_cal[4];
                 crc_cal[0] = crc_code >> 24;
                 crc_cal[1] = crc_code >> 16;
                 crc_cal[2] = crc_code >> 8;
                 crc_cal[3] = crc_code;
+
+                // 显示CRC
+                QString CRC = QByteArray(crc_cal).toHex().data();
+                ui->label_crcRecv->setText(CRC.mid(0,2)+" "+CRC.mid(2,2)+" "+CRC.mid(4,2)+" "+CRC.mid(6,2));
                 if(strcmp(crc_recv, crc_cal)){
-                    // CRC check right
+                    crc_check_right = true;
                 }
+                else crc_check_right = false;
                 delete crc_recv;
             }
+            else{crc_check_right = false;}
 
-            QString spirecv = QString(tmp);
-            ui->vlcRecvtextBrowser->append(spirecv);
+            QString spirecv = QString((char*)tmp);
+            if(ui->CRCyescheckBox->isChecked()){
+                if(crc_check_right){
+                    ui->vlcRecvtextBrowser->append(spirecv);
+                }
+            }
+            else ui->vlcRecvtextBrowser->append(spirecv);
 
             //统计误码率
             if(ui->wumalvRecvcheckBox->isChecked()){
@@ -122,7 +134,6 @@ void MainWindow::spi_recv(){
                 ui->label_wumalv->setText(QString::number(wumalv, 10, 6));
             }
             memset(vlcrecv, 0, 0);
-
          }
     }
 }
@@ -132,10 +143,10 @@ void MainWindow::spi_init(){
     if(wiringPiSetup()<0){
       QMessageBox::about(NULL, "提示", "wiringPi初始化失败！");
      }
-    if(spiFd0 = wiringPiSPISetup(0,976000)==-1){
+    if(spiFd0 = wiringPiSPISetup(0,6250000)==-1){
        QMessageBox::about(NULL, "提示", "SPI0初始化失败！");
      }
-    if(spiFd1 = wiringPiSPISetup(1,976000)==-1){
+    if(spiFd1 = wiringPiSPISetup(1,6250000)==-1){
        QMessageBox::about(NULL, "提示", "SPI1初始化失败！");
      }
 
@@ -150,7 +161,6 @@ void MainWindow::spi_init(){
     std::thread t(&MainWindow::spi_recv, this);
     t.detach();
 }
-
 
 void MainWindow::serialROV_readyRead(){
     //从接收缓冲区中读取数据
@@ -211,6 +221,8 @@ void MainWindow::serialSonic_readyRead(){
         }
     }
 }
+
+
 
 //ROV
 void MainWindow::on_openButton_clicked(){
@@ -359,6 +371,7 @@ void MainWindow::on_speedResetButton_clicked(){
 }
 
 
+
 //Sonic
 void MainWindow::on_openSonicButton_clicked(){
     if(ui->openSonicButton->text()==QString("打开串口"))
@@ -383,6 +396,7 @@ void MainWindow::on_openSonicButton_clicked(){
         ui->DButton->setEnabled(true);
         ui->MButton->setEnabled(true);
         ui->EButton->setEnabled(true);
+        ui->sonicSendClearButton->setEnabled(true);
     }
     else
     {
@@ -396,35 +410,36 @@ void MainWindow::on_openSonicButton_clicked(){
         ui->DButton->setEnabled(false);
         ui->MButton->setEnabled(false);
         ui->EButton->setEnabled(false);
+        ui->sonicSendClearButton->setEnabled(false);
     }
 }
 
 void MainWindow::on_sonicSendButton_clicked(){
-    QString sonicSend = ui->sonicSendEdit->toPlainText();
+    QString sonicSend = ui->sonicSendEdit->toPlainText() + "\r\n";
     QByteArray sonicSendBytes = sonicSend.toUtf8();
     serialSonic.write(sonicSendBytes);
 }
 
 void MainWindow::on_AButton_clicked(){
-    QString opt = "A\n\r";
+    QString opt = "A\r\n";
     QByteArray optBytes = opt.toUtf8();
     serialSonic.write(optBytes);
 }
 
 void MainWindow::on_DButton_clicked(){
-    QString opt = "D\n\r";
+    QString opt = "D\r\n";
     QByteArray optBytes = opt.toUtf8();
     serialSonic.write(optBytes);
 }
 
 void MainWindow::on_MButton_clicked(){
-    QString opt = "M\n\r";
+    QString opt = "M\r\n";
     QByteArray optBytes = opt.toUtf8();
     serialSonic.write(optBytes);
 }
 
 void MainWindow::on_EButton_clicked(){
-    QString opt = "E\n\r";
+    QString opt = "E\r\n";
     QByteArray optBytes = opt.toUtf8();
     serialSonic.write(optBytes);
 }
@@ -432,6 +447,12 @@ void MainWindow::on_EButton_clicked(){
 void MainWindow::on_clearSonicRecvButton_clicked(){
     ui->sonicRecvtextBrowser->clear();
 }
+
+void MainWindow::on_sonicSendClearButton_clicked(){
+    ui->sonicSendEdit->clear();
+}
+
+
 
 //VLC
 QString gettime(){
@@ -479,7 +500,7 @@ void MainWindow::on_vlcSendButton_clicked(){
         digitalWrite(24, 1);
     }
 
-    char vlcsend[239];
+    char vlcsend[239]={0};
     QString spiSend;
     if(ui->timecheckBox->isChecked()){
         spiSend = gettime() + ui->vlcSendtextEdit->toPlainText();
@@ -496,13 +517,14 @@ void MainWindow::on_vlcSendButton_clicked(){
         vlcsend[1] = crc_code >> 16;
         vlcsend[2] = crc_code >> 8;
         vlcsend[3] = crc_code;
+        QString CRC = QByteArray(vlcsend).toHex().data();
+        ui->label_crcSend->setText(CRC.mid(0,2)+" "+CRC.mid(2,2)+" "+CRC.mid(4,2)+" "+CRC.mid(6,2));
+
         strcat(vlcsend, tmp);
     }
     else strcpy(vlcsend, tmp);
 
     wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
-    memset(vlcsend, 0, 0);
-
     if(ui->ParadoxcheckBox->isChecked()){
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         digitalWrite(24, 0);
@@ -529,7 +551,7 @@ void MainWindow::spi_loopSend(){
         QString intervaltime = ui->looptimeEdit->text();
         int interval = intervaltime.toInt();
 
-        char vlcsend[239];
+        char vlcsend[239]={0};
         QString spiSend;
         if(ui->timecheckBox->isChecked()){
             spiSend = gettime() + ui->vlcSendtextEdit->toPlainText();
@@ -546,6 +568,9 @@ void MainWindow::spi_loopSend(){
             vlcsend[1] = crc_code >> 16;
             vlcsend[2] = crc_code >> 8;
             vlcsend[3] = crc_code;
+            QString CRC = QByteArray(vlcsend).toHex().data();
+            ui->label_crcSend->setText(CRC.mid(0,2)+" "+CRC.mid(2,2)+" "+CRC.mid(4,2)+" "+CRC.mid(6,2));
+
             strcat(vlcsend, tmp);
         }
         else strcpy(vlcsend, tmp);
@@ -576,11 +601,19 @@ void MainWindow::on_loopButton_clicked(){
 
 void MainWindow::on_clearVLCrecvButton_clicked(){
     ui->vlcRecvtextBrowser->clear();
+    ui->label_crcRecv->clear();
 }
 
 void MainWindow::on_vlcRecvtextBrowser_textChanged(){
     ui->vlcRecvtextBrowser->moveCursor(QTextCursor::End);
 }
+
+void MainWindow::on_vlcSendClearButton_clicked(){
+    ui->vlcSendtextEdit->clear();
+    ui->label_crcSend->clear();
+}
+
+
 
 // VLC误码率
 void MainWindow::wumalv_loopSend(){
@@ -590,7 +623,7 @@ void MainWindow::wumalv_loopSend(){
     while(wumalv_send_loop){
         QString wumalvtime = ui->wumalvTimeEdit->text();
         int interval = wumalvtime.toInt();
-        char vlcsend[239];
+        char vlcsend[239]={0};
         QString spiSend = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         QByteArray spiSendBytes = spiSend.toUtf8();
         char* tmp = spiSendBytes.data();
@@ -602,6 +635,8 @@ void MainWindow::wumalv_loopSend(){
             vlcsend[1] = crc_code >> 16;
             vlcsend[2] = crc_code >> 8;
             vlcsend[3] = crc_code;
+            QString CRC = QByteArray(vlcsend).toHex().data();
+            ui->label_crcSend->setText(CRC.mid(0,2)+" "+CRC.mid(2,2)+" "+CRC.mid(4,2)+" "+CRC.mid(6,2));
             strcat(vlcsend, tmp);
         }
         else strcpy(vlcsend, tmp);
@@ -649,3 +684,7 @@ void MainWindow::on_clearwumalvSendNumsButton_clicked(){
     wumalv_sendnums = 0;
     ui->label_wumalv_sendnums->setText(QString::number(wumalv_sendnums));
 }
+
+
+
+
