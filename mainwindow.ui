@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>797</width>
-    <height>805</height>
+    <width>1002</width>
+    <height>801</height>
    </rect>
   </property>
   <property name="font">
@@ -29,7 +29,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>+</string>
+     <string>↑</string>
     </property>
    </widget>
    <widget class="QLabel" name="label">
@@ -132,7 +132,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>+</string>
+     <string>←</string>
     </property>
    </widget>
    <widget class="QPushButton" name="M_upButton">
@@ -145,7 +145,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>+</string>
+     <string>↶</string>
     </property>
    </widget>
    <widget class="QPushButton" name="Z_upButton">
@@ -158,7 +158,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>+</string>
+     <string>↑</string>
     </property>
    </widget>
    <widget class="QPushButton" name="X_downButton">
@@ -171,7 +171,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>-</string>
+     <string> ↓</string>
     </property>
    </widget>
    <widget class="QPushButton" name="Y_downButton">
@@ -184,7 +184,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>-</string>
+     <string>→ </string>
     </property>
    </widget>
    <widget class="QPushButton" name="M_downButton">
@@ -197,7 +197,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>-</string>
+     <string>↷</string>
     </property>
    </widget>
    <widget class="QPushButton" name="Z_downButton">
@@ -210,7 +210,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>-</string>
+     <string> ↓</string>
     </property>
    </widget>
    <widget class="QComboBox" name="serialBox">
@@ -541,13 +541,13 @@
      <rect>
       <x>490</x>
       <y>140</y>
-      <width>291</width>
+      <width>501</width>
       <height>301</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>7</pointsize>
+      <pointsize>9</pointsize>
      </font>
     </property>
    </widget>
@@ -592,7 +592,7 @@
    <widget class="QLabel" name="label_14">
     <property name="geometry">
      <rect>
-      <x>490</x>
+      <x>540</x>
       <y>480</y>
       <width>171</width>
       <height>23</height>
@@ -612,8 +612,8 @@
      <rect>
       <x>220</x>
       <y>500</y>
-      <width>251</width>
-      <height>151</height>
+      <width>311</width>
+      <height>161</height>
      </rect>
     </property>
     <property name="font">
@@ -626,7 +626,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>650</y>
+      <y>660</y>
       <width>51</width>
       <height>21</height>
      </rect>
@@ -643,10 +643,10 @@
    <widget class="QTextBrowser" name="vlcRecvtextBrowser">
     <property name="geometry">
      <rect>
-      <x>490</x>
+      <x>540</x>
       <y>500</y>
-      <width>291</width>
-      <height>151</height>
+      <width>451</width>
+      <height>181</height>
      </rect>
     </property>
     <property name="font">
@@ -702,7 +702,7 @@
    <widget class="QPushButton" name="clearSonicRecvButton">
     <property name="geometry">
      <rect>
-      <x>600</x>
+      <x>700</x>
       <y>440</y>
       <width>71</width>
       <height>21</height>
@@ -720,8 +720,8 @@
    <widget class="QPushButton" name="clearVLCrecvButton">
     <property name="geometry">
      <rect>
-      <x>550</x>
-      <y>650</y>
+      <x>720</x>
+      <y>680</y>
       <width>81</width>
       <height>21</height>
      </rect>
@@ -829,7 +829,7 @@
     <property name="geometry">
      <rect>
       <x>340</x>
-      <y>650</y>
+      <y>660</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -847,7 +847,7 @@
     <property name="geometry">
      <rect>
       <x>350</x>
-      <y>670</y>
+      <y>680</y>
       <width>91</width>
       <height>23</height>
      </rect>
@@ -865,7 +865,7 @@
     <property name="geometry">
      <rect>
       <x>450</x>
-      <y>670</y>
+      <y>680</y>
       <width>51</width>
       <height>21</height>
      </rect>
@@ -880,7 +880,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>670</y>
+      <y>680</y>
       <width>106</width>
       <height>28</height>
      </rect>
@@ -1028,7 +1028,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>10</pointsize>
       <weight>50</weight>
       <italic>false</italic>
       <bold>false</bold>
@@ -1049,7 +1049,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>10</pointsize>
      </font>
     </property>
     <property name="text">
@@ -1067,7 +1067,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>9</pointsize>
+      <pointsize>10</pointsize>
      </font>
     </property>
     <property name="text">
@@ -1078,7 +1078,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>690</y>
+      <y>700</y>
       <width>106</width>
       <height>28</height>
      </rect>
@@ -1090,8 +1090,8 @@
    <widget class="QCheckBox" name="CRCcheckBox">
     <property name="geometry">
      <rect>
-      <x>350</x>
-      <y>690</y>
+      <x>220</x>
+      <y>720</y>
       <width>101</width>
       <height>20</height>
      </rect>
@@ -1121,7 +1121,7 @@
    <widget class="QLabel" name="label_crcRecv">
     <property name="geometry">
      <rect>
-      <x>560</x>
+      <x>610</x>
       <y>480</y>
       <width>181</width>
       <height>23</height>
@@ -1158,7 +1158,7 @@
     <property name="geometry">
      <rect>
       <x>280</x>
-      <y>650</y>
+      <y>660</y>
       <width>41</width>
       <height>21</height>
      </rect>
@@ -1175,8 +1175,8 @@
    <widget class="QCheckBox" name="CRCyescheckBox">
     <property name="geometry">
      <rect>
-      <x>650</x>
-      <y>670</y>
+      <x>540</x>
+      <y>700</y>
       <width>91</width>
       <height>21</height>
      </rect>
@@ -1188,8 +1188,8 @@
    <widget class="QCheckBox" name="CRCrecvcheckBox">
     <property name="geometry">
      <rect>
-      <x>650</x>
-      <y>650</y>
+      <x>540</x>
+      <y>680</y>
       <width>106</width>
       <height>28</height>
      </rect>
@@ -1204,7 +1204,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>797</width>
+     <width>1002</width>
      <height>25</height>
     </rect>
    </property>
