@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1002</width>
-    <height>801</height>
+    <height>881</height>
    </rect>
   </property>
   <property name="font">
@@ -274,7 +274,7 @@
       <x>220</x>
       <y>30</y>
       <width>251</width>
-      <height>221</height>
+      <height>231</height>
      </rect>
     </property>
     <property name="font">
@@ -644,7 +644,7 @@
     <property name="geometry">
      <rect>
       <x>540</x>
-      <y>500</y>
+      <y>530</y>
       <width>451</width>
       <height>181</height>
      </rect>
@@ -721,7 +721,7 @@
     <property name="geometry">
      <rect>
       <x>720</x>
-      <y>680</y>
+      <y>710</y>
       <width>81</width>
       <height>21</height>
      </rect>
@@ -739,7 +739,7 @@
     <property name="geometry">
      <rect>
       <x>310</x>
-      <y>250</y>
+      <y>260</y>
       <width>61</width>
       <height>21</height>
      </rect>
@@ -898,7 +898,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>500</y>
+      <y>510</y>
       <width>105</width>
       <height>21</height>
      </rect>
@@ -916,7 +916,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>660</y>
+      <y>670</y>
       <width>81</width>
       <height>21</height>
      </rect>
@@ -934,7 +934,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>630</y>
+      <y>640</y>
       <width>73</width>
       <height>23</height>
      </rect>
@@ -952,7 +952,7 @@
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>630</y>
+      <y>640</y>
       <width>121</width>
       <height>23</height>
      </rect>
@@ -970,7 +970,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>530</y>
+      <y>540</y>
       <width>73</width>
       <height>23</height>
      </rect>
@@ -988,7 +988,7 @@
     <property name="geometry">
      <rect>
       <x>70</x>
-      <y>530</y>
+      <y>540</y>
       <width>51</width>
       <height>21</height>
      </rect>
@@ -1003,7 +1003,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>600</y>
+      <y>610</y>
       <width>131</width>
       <height>28</height>
      </rect>
@@ -1021,7 +1021,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>560</y>
+      <y>570</y>
       <width>73</width>
       <height>20</height>
      </rect>
@@ -1042,7 +1042,7 @@
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>560</y>
+      <y>570</y>
       <width>41</width>
       <height>20</height>
      </rect>
@@ -1060,7 +1060,7 @@
     <property name="geometry">
      <rect>
       <x>120</x>
-      <y>560</y>
+      <y>570</y>
       <width>31</width>
       <height>21</height>
      </rect>
@@ -1176,7 +1176,7 @@
     <property name="geometry">
      <rect>
       <x>540</x>
-      <y>700</y>
+      <y>730</y>
       <width>91</width>
       <height>21</height>
      </rect>
@@ -1189,13 +1189,201 @@
     <property name="geometry">
      <rect>
       <x>540</x>
-      <y>680</y>
+      <y>710</y>
       <width>106</width>
       <height>28</height>
      </rect>
     </property>
     <property name="text">
      <string>CRC32校验</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="selectFileButton">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>750</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>选择文件</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_20">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>720</y>
+      <width>73</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>文件传输:</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="sendFileButton">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>750</y>
+      <width>51</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>发送</string>
+    </property>
+   </widget>
+   <widget class="QFrame" name="frame">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>500</y>
+      <width>191</width>
+      <height>201</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+   </widget>
+   <widget class="QFrame" name="frame_2">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>60</y>
+      <width>211</width>
+      <height>201</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="startSpiRecvButton">
+    <property name="geometry">
+     <rect>
+      <x>540</x>
+      <y>510</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>开启接收</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="modeRecvcomboBox">
+    <property name="geometry">
+     <rect>
+      <x>660</x>
+      <y>510</y>
+      <width>61</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>字符</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>文件</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>图片</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLabel" name="label_21">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>510</y>
+      <width>73</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>模式:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_fileinfo">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>750</y>
+      <width>521</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QProgressBar" name="progressBar">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>770</y>
+      <width>191</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="value">
+     <number>0</number>
+    </property>
+    <property name="textVisible">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="imgselectButton">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>780</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>选择图片</string>
+    </property>
+   </widget>
+   <widget class="QProgressBar" name="progressBar_2">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>510</y>
+      <width>251</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="value">
+     <number>0</number>
     </property>
    </widget>
   </widget>

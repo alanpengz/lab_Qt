@@ -3,6 +3,9 @@
 #include "ui_mainwindow.h"
 #include "crc.h"
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QFile>
+#include <QBuffer>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 #include <thread>
@@ -48,7 +51,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->sonicSendClearButton->setEnabled(false);
     ui->looptimeEdit->setText("1000");
     ui->wumalvTimeEdit->setText("1000");
-    ui->label_wumalv->setText("0.0000");
+    ui->label_wumalv->setText("0");
+    ui->sendFileButton->setEnabled(false);
 }
 
 MainWindow::~MainWindow()
@@ -80,60 +84,147 @@ void MainWindow::serialport_refresh(){
     }
 }
 
+void MainWindow::on_startSpiRecvButton_clicked(){
+    if(ui->startSpiRecvButton->text()==QString("开启接收")){
+        ui->startSpiRecvButton->setText(QString("关闭接收"));
+        if(!spiRecv){
+            digitalWrite(24, 0);
+        }
+//        std::thread th(std::bind(&MainWindow::updateProgressRecv,this));
+//        th.detach();
+    }
+    else{
+        ui->startSpiRecvButton->setText(QString("开启接收"));
+        digitalWrite(24, 1);
+    }
+}
+
 void MainWindow::spi_recv(){
     while(true){
         if(digitalRead(6)){
-            unsigned char vlcrecv[239]={0};
-            unsigned char* tmp = vlcrecv;
-            wiringPiSPIDataRW(1, vlcrecv, 239);
+            if(ui->modeRecvcomboBox->currentText()=="字符"){
+                unsigned char vlcrecv[239]={0};
+                unsigned char* tmp = vlcrecv;
+                wiringPiSPIDataRW(1, vlcrecv, 239);
 
-            // CRC
-            if(ui->CRCrecvcheckBox->isChecked()){
-                char* crc_recv = new char[4];
-                for(int i=0; i<4; i++){
-                    crc_recv[i] = vlcrecv[i];
-                }
-                // data
-                for(int i=0; i<4; i++){
-                    tmp++;
-                }
-                uint32_t crc_code = getCRC((char*)tmp, strlen((char*)tmp));
-                char crc_cal[4];
-                crc_cal[0] = crc_code >> 24;
-                crc_cal[1] = crc_code >> 16;
-                crc_cal[2] = crc_code >> 8;
-                crc_cal[3] = crc_code;
+                // CRC
+                if(ui->CRCrecvcheckBox->isChecked()){
+                    char* crc_recv = new char[4];
+                    for(int i=0; i<4; i++){
+                        crc_recv[i] = vlcrecv[i];
+                    }
+                    // data
+                    for(int i=0; i<4; i++){
+                        tmp++;
+                    }
+                    uint32_t crc_code = getCRC((char*)tmp, strlen((char*)tmp));
+                    char crc_cal[4];
+                    crc_cal[0] = crc_code >> 24;
+                    crc_cal[1] = crc_code >> 16;
+                    crc_cal[2] = crc_code >> 8;
+                    crc_cal[3] = crc_code;
 
-                // 显示CRC
-                QString CRC = QByteArray(crc_cal).toHex().data();
-                ui->label_crcRecv->setText(CRC.mid(0,2)+" "+CRC.mid(2,2)+" "+CRC.mid(4,2)+" "+CRC.mid(6,2));
-                if(strcmp(crc_recv, crc_cal)){
-                    crc_check_right = true;
+                    // 显示CRC
+                    QString CRC = QByteArray(crc_cal).toHex().data();
+                    ui->label_crcRecv->setText(CRC.mid(0,2)+" "+CRC.mid(2,2)+" "+CRC.mid(4,2)+" "+CRC.mid(6,2));
+                    if(strcmp(crc_recv, crc_cal)){
+                        crc_check_right = true;
+                    }
+                    else crc_check_right = false;
+                    delete crc_recv;
                 }
-                else crc_check_right = false;
-                delete crc_recv;
+                else{crc_check_right = false;}
+
+                QString spirecv = QString((char*)tmp);
+                if(ui->CRCyescheckBox->isChecked()){
+                    if(crc_check_right){
+                        ui->vlcRecvtextBrowser->append(spirecv);
+                    }
+                }
+                else ui->vlcRecvtextBrowser->append(spirecv);
+
+                //统计误码率
+                if(ui->wumalvRecvcheckBox->isChecked()){
+                    QString words = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                    for(int i=0; i<min(words.size(), spirecv.size());i++){
+                        if(spirecv[i]==words[i]) Ycounts++;
+                        Acounts++;
+                    }
+                    wumalv = 1-(Ycounts / Acounts);
+                    ui->label_wumalv->setText(QString::number(wumalv, 10, 6));
+                }
+                if(spirecv.size()>10000){
+                    ui->vlcRecvtextBrowser->clear();
+                }
             }
-            else{crc_check_right = false;}
 
-            QString spirecv = QString((char*)tmp);
-            if(ui->CRCyescheckBox->isChecked()){
-                if(crc_check_right){
-                    ui->vlcRecvtextBrowser->append(spirecv);
-                }
-            }
-            else ui->vlcRecvtextBrowser->append(spirecv);
+            if(ui->modeRecvcomboBox->currentText()=="文件"){
+                unsigned char vlcrecv[239]={0};
+                wiringPiSPIDataRW(1, vlcrecv, 239);
 
-            //统计误码率
-            if(ui->wumalvRecvcheckBox->isChecked()){
-                QString words = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-                for(int i=0; i<min(words.size(), spirecv.size());i++){
-                    if(spirecv[i]==words[i]) Ycounts++;
-                    Acounts++;
+                // 文件头信息
+                if(!filehead_done){
+                    RecvFileName = QString((char*)vlcrecv).section("##",0,0);
+                    RecvFileSize = QString((char*)vlcrecv).section("##",1,1).toInt();
+                    recvSize=0;
+
+                    QString recvFileHeadInfo = "新文件开始接收! 文件名:" + RecvFileName + " 文件大小:" + QString::number(RecvFileSize);
+                    ui->vlcRecvtextBrowser->append(recvFileHeadInfo);
+                    ui->progressBar_2->setMinimum(0);
+                    ui->progressBar_2->setMaximum(RecvFileSize);
+
+                    RecvFile.setFileName("/home/pi/Desktop/" + RecvFileName);
+                    if(!RecvFile.open(QIODevice::WriteOnly)){
+                        QMessageBox::about(NULL, "提示", "文件写入错误");
+                        return;
+                    }
+                    filehead_done = true;
                 }
-                wumalv = 1-(Ycounts / Acounts);
-                ui->label_wumalv->setText(QString::number(wumalv, 10, 6));
+                // 文件数据写入
+                else{
+                    qint64 len = RecvFile.write((char*)vlcrecv);
+                    if(len<0){
+                        QMessageBox::about(NULL, "提示", "文件写入失败");
+                        return;
+                    }
+                    recvSize += len;
+                    // 文件接收完成
+                    if(recvSize >= RecvFileSize){
+                        QString recvFileInfo = "文件接收完成! 文件保存路径:/home/pi/Desktop/ 文件名:" + RecvFileName + " 文件大小:" + QString::number(RecvFileSize);
+                        ui->vlcRecvtextBrowser->append(recvFileInfo);
+                        file_recv_done = true;
+                        RecvFile.close();
+                        RecvFileName.clear();
+                        filehead_done = false;
+                        RecvFileSize=0;
+                        recvSize=0;
+                    }
+                }
+    }
+
+            if(ui->modeRecvcomboBox->currentText()=="图片"){
+                unsigned char vlcrecv[239]={0};
+                wiringPiSPIDataRW(1, vlcrecv, 239);
+
+                // 图片头信息
+                if(!filehead_done){
+                    RecvFileName = QString((char*)vlcrecv).section("##",0,0);
+                    RecvFileSize = QString((char*)vlcrecv).section("##",1,1).toInt();
+                    recvSize=0;
+
+                    RecvFile.setFileName(RecvFileName);
+                    if(!RecvFile.open(QIODevice::WriteOnly)){
+                        QMessageBox::about(NULL, "提示", "图片写入错误");
+                        return;
+                    }
+                }
+                // 图片数据写入
+                else{
+                    RecvFile.write((char*)vlcrecv);
+                }
+
             }
-            memset(vlcrecv, 0, 0);
+
          }
     }
 }
@@ -153,7 +244,7 @@ void MainWindow::spi_init(){
     pinMode(6, INPUT);
     pinMode(24, OUTPUT); // 收发互斥
     pinMode(25,OUTPUT); // 复位
-    digitalWrite(24, 0);
+    digitalWrite(24, 1); // 默认不开启接收
     digitalWrite(25, 0);
     sleep(1);
     digitalWrite(25, 1); // 复位脚置高
@@ -173,6 +264,9 @@ void MainWindow::serialROV_readyRead(){
         ui->textBrowser->clear();
         //重新显示
         ui->textBrowser->append(recv);
+        if(recv.size()>500){
+            ui->textBrowser->clear();
+        }
     }
 }
 
@@ -417,6 +511,9 @@ void MainWindow::on_openSonicButton_clicked(){
 void MainWindow::on_sonicSendButton_clicked(){
     QString sonicSend = ui->sonicSendEdit->toPlainText() + "\r\n";
     QByteArray sonicSendBytes = sonicSend.toUtf8();
+    QString M = "M\r\n";
+    QByteArray MBytes = M.toUtf8();
+    serialSonic.write(MBytes);
     serialSonic.write(sonicSendBytes);
 }
 
@@ -674,10 +771,10 @@ void MainWindow::on_wumalvButton_clicked(){
 }
 
 void MainWindow::on_clearWumalvButton_clicked(){
+    ui->label_wumalv->clear();
     wumalv = 0;
     Acounts = 0;
     Ycounts = 0;
-    ui->label_wumalv->setText("0.0000");
 }
 
 void MainWindow::on_clearwumalvSendNumsButton_clicked(){
@@ -687,4 +784,117 @@ void MainWindow::on_clearwumalvSendNumsButton_clicked(){
 
 
 
+// 文件传输
+void MainWindow::on_selectFileButton_clicked(){
+    QString filePath=QFileDialog::getOpenFileName(this,"选择文件","../");
+    if(!filePath.isEmpty()){
+        SendFileName.clear();
+        SendFileSize=0;
+        sendSize=0;
+        file_send_done = false;
 
+        //获取文件信息
+        QFileInfo info(filePath);
+        SendFileName=info.fileName();//获取文件名字
+        SendFileSize=info.size();
+        sendSize=0;
+        //只读方式打开文件
+        SendFile.setFileName(filePath);
+        bool isOk=SendFile.open(QIODevice::ReadOnly);
+        if(!isOk){
+            QMessageBox::about(NULL, "提示", "只读方式打开文件失败");
+            return;
+        }
+        QString fileinfo = "文件名:" + SendFileName + " 文件大小:" + QString::number(SendFileSize);
+        ui->label_fileinfo->setText(fileinfo);
+        ui->sendFileButton->setEnabled(true);
+    }
+    else{
+        QMessageBox::about(NULL, "提示", "选择文件路径出错");
+        return;
+    }
+    ui->progressBar->setMinimum(0);
+    ui->progressBar->setMaximum(SendFileSize);
+    ui->progressBar->setValue(0);
+}
+
+void MainWindow::updateProgressSend(){
+    while(!file_send_done){
+        ui->progressBar->setValue(sendSize);
+    }
+    ui->progressBar->setValue(SendFileSize);
+}
+
+void MainWindow::sendFile(){
+    //先发送文件头信息
+    QString head=QString("%1##%2").arg(SendFileName).arg(SendFileSize);
+    char filehead[239] = {0};
+    char* tmphead = head.toUtf8().data();
+    strcpy(filehead, tmphead);
+    wiringPiSPIDataRW(0, (unsigned char*)filehead, 239);
+
+//    QPixmap pix(SendFileName);
+//    QBuffer buffer;
+//    buffer.open(QIODevice::ReadWrite);
+//    pix.save(&buffer,"jpg");
+//    quint32 pix_len = (quint32)buffer.data().size();
+//    QByteArray dataArray;
+//    dataArray.append(buffer.data());
+
+     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    //发送文件
+    while(!file_send_done){
+        char filedata[239] = {0};
+        qint64 len = SendFile.read(filedata, 239);
+        wiringPiSPIDataRW(0, (unsigned char*)filedata, 239);
+        sendSize += len;
+
+        if(sendSize == SendFileSize) file_send_done = true;
+        this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    SendFile.close();
+}
+
+void MainWindow::on_sendFileButton_clicked(){
+    std::thread th1(std::bind(&MainWindow::sendFile,this));
+    th1.detach();
+
+    std::thread th2(std::bind(&MainWindow::updateProgressSend,this));
+    th2.detach();
+}
+
+void MainWindow::updateProgressRecv(){
+    while(!file_recv_done){
+        ui->progressBar_2->setValue(recvSize);
+    }
+    ui->progressBar_2->setValue(RecvFileSize);
+}
+
+void MainWindow::on_imgselectButton_clicked(){
+    QString imgpath = QFileDialog::getOpenFileName(this,tr("选择图像"),"",tr("Images (*.png *.bmp *.jpg *.tif *.GIF )"));
+    if(imgpath.isEmpty())
+        return;
+    else{
+        SendFileName.clear();
+        SendFileSize=0;
+
+        //获取图像信息
+        QFileInfo info(imgpath);
+        SendFileName=info.fileName();//获取文件名字
+        SendFileSize=info.size();
+        sendSize=0;
+        QString imginfo = "图像名:" + SendFileName + " 图像大小:" + QString::number(SendFileSize);
+        ui->label_fileinfo->setText(imginfo);
+        ui->sendFileButton->setEnabled(true);
+
+        QImage* img=new QImage;
+        if(!(img->load(imgpath) ) ){
+            QMessageBox::information(this,tr("提示"),tr("打开图像失败!"));
+            delete img;
+            return;
+        }
+        QLabel* label=new QLabel();
+        label->setPixmap(QPixmap::fromImage(*img));
+        label->show();
+    }
+}

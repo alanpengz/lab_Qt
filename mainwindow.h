@@ -3,6 +3,7 @@
 #include <QMainWindow>
 #include <QSerialPort>
 #include <QSerialPortInfo>
+#include <QFile>
 
 namespace Ui {
 class MainWindow;
@@ -58,17 +59,26 @@ private slots:
     void on_clearWumalvButton_clicked();
     void on_clearwumalvSendNumsButton_clicked();
 
+    void on_startSpiRecvButton_clicked();
+    void on_selectFileButton_clicked();
+    void on_sendFileButton_clicked();
+    void sendFile();
+    void on_imgselectButton_clicked();
+    void updateProgressSend();
+    void updateProgressRecv();
+
 private:
     Ui::MainWindow *ui;
     QSerialPort serialROV;
     QSerialPort serialSonic;
     QList<QSerialPortInfo> ports;
-    int spiFd0;
-    int spiFd1;
+    qint32 spiFd0;
+    qint32 spiFd1;
     int X=0;
     int Y=0;
     int M=0;
     int Z=0;
+    bool spiRecv = false;
     bool crc_check_right = false;
     bool spi_send_loop = false;
     bool wumalv_send_loop = false;
@@ -77,6 +87,19 @@ private:
     double Acounts = 0;
     double Ycounts = 0;
     int wumalv_sendnums = 0;
+
+    QFile SendFile;
+    QString SendFileName;
+    qint64 SendFileSize;
+    qint64 sendSize;
+    bool file_send_done = false;
+
+    QFile RecvFile;
+    QString RecvFileName;
+    qint64 RecvFileSize;
+    qint64 recvSize;
+    bool filehead_done = false;
+    bool file_recv_done = false;
 };
 
 #endif // MAINWINDOW_H
