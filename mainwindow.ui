@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1002</width>
-    <height>881</height>
+    <height>921</height>
    </rect>
   </property>
   <property name="font">
@@ -582,7 +582,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>10</pointsize>
+      <pointsize>11</pointsize>
      </font>
     </property>
     <property name="text">
@@ -600,7 +600,7 @@
     </property>
     <property name="font">
      <font>
-      <pointsize>10</pointsize>
+      <pointsize>11</pointsize>
      </font>
     </property>
     <property name="text">
@@ -611,7 +611,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>500</y>
+      <y>530</y>
       <width>311</width>
       <height>161</height>
      </rect>
@@ -626,7 +626,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>660</y>
+      <y>690</y>
       <width>51</width>
       <height>21</height>
      </rect>
@@ -829,7 +829,7 @@
     <property name="geometry">
      <rect>
       <x>340</x>
-      <y>660</y>
+      <y>690</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -847,7 +847,7 @@
     <property name="geometry">
      <rect>
       <x>350</x>
-      <y>680</y>
+      <y>710</y>
       <width>91</width>
       <height>23</height>
      </rect>
@@ -865,7 +865,7 @@
     <property name="geometry">
      <rect>
       <x>450</x>
-      <y>680</y>
+      <y>710</y>
       <width>51</width>
       <height>21</height>
      </rect>
@@ -880,7 +880,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>680</y>
+      <y>710</y>
       <width>106</width>
       <height>28</height>
      </rect>
@@ -1078,7 +1078,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>700</y>
+      <y>730</y>
       <width>106</width>
       <height>28</height>
      </rect>
@@ -1091,7 +1091,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>720</y>
+      <y>750</y>
       <width>101</width>
       <height>20</height>
      </rect>
@@ -1158,7 +1158,7 @@
     <property name="geometry">
      <rect>
       <x>280</x>
-      <y>660</y>
+      <y>690</y>
       <width>41</width>
       <height>21</height>
      </rect>
@@ -1202,9 +1202,9 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>750</y>
+      <y>780</y>
       <width>81</width>
-      <height>21</height>
+      <height>51</height>
      </rect>
     </property>
     <property name="text">
@@ -1215,7 +1215,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>720</y>
+      <y>750</y>
       <width>73</width>
       <height>23</height>
      </rect>
@@ -1234,45 +1234,13 @@
     <property name="geometry">
      <rect>
       <x>110</x>
-      <y>750</y>
+      <y>780</y>
       <width>51</width>
       <height>51</height>
      </rect>
     </property>
     <property name="text">
      <string>发送</string>
-    </property>
-   </widget>
-   <widget class="QFrame" name="frame">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>500</y>
-      <width>191</width>
-      <height>201</height>
-     </rect>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-   </widget>
-   <widget class="QFrame" name="frame_2">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>60</y>
-      <width>211</width>
-      <height>201</height>
-     </rect>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
     </property>
    </widget>
    <widget class="QPushButton" name="startSpiRecvButton">
@@ -1307,11 +1275,6 @@
       <string>文件</string>
      </property>
     </item>
-    <item>
-     <property name="text">
-      <string>图片</string>
-     </property>
-    </item>
    </widget>
    <widget class="QLabel" name="label_21">
     <property name="geometry">
@@ -1335,7 +1298,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>750</y>
+      <y>780</y>
       <width>521</width>
       <height>23</height>
      </rect>
@@ -1348,7 +1311,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>770</y>
+      <y>800</y>
       <width>191</width>
       <height>31</height>
      </rect>
@@ -1360,31 +1323,81 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="imgselectButton">
+   <widget class="QComboBox" name="spiRateRecvcomboBox">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>780</y>
+      <x>800</x>
+      <y>511</y>
       <width>81</width>
-      <height>21</height>
+      <height>20</height>
      </rect>
     </property>
-    <property name="text">
-     <string>选择图片</string>
-    </property>
+    <item>
+     <property name="text">
+      <string>976000</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>6250000</string>
+     </property>
+    </item>
    </widget>
-   <widget class="QProgressBar" name="progressBar_2">
+   <widget class="QLabel" name="label_22">
     <property name="geometry">
      <rect>
       <x>740</x>
       <y>510</y>
-      <width>251</width>
+      <width>73</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>SPI速率:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_23">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>510</y>
+      <width>73</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>SPI速率:</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="spiRateSendcomboBox">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>510</y>
+      <width>81</width>
       <height>21</height>
      </rect>
     </property>
-    <property name="value">
-     <number>0</number>
-    </property>
+    <item>
+     <property name="text">
+      <string>976000</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>6250000 </string>
+     </property>
+    </item>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">

@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this->setWindowTitle("UWOC Comm(v0.1)");
+    this->setWindowTitle("UWOC Comm(v0.3.0)");
 
     spi_init();
     //连接serialROV serialSonic信号和槽
@@ -90,8 +90,6 @@ void MainWindow::on_startSpiRecvButton_clicked(){
         if(!spiRecv){
             digitalWrite(24, 0);
         }
-//        std::thread th(std::bind(&MainWindow::updateProgressRecv,this));
-//        th.detach();
     }
     else{
         ui->startSpiRecvButton->setText(QString("开启接收"));
@@ -159,7 +157,8 @@ void MainWindow::spi_recv(){
             }
 
             if(ui->modeRecvcomboBox->currentText()=="文件"){
-                unsigned char vlcrecv[239]={0};
+//                unsigned char vlcrecv[239]={0};
+                quint8 vlcrecv[239]={0};
                 wiringPiSPIDataRW(1, vlcrecv, 239);
 
                 // 文件头信息
@@ -170,24 +169,35 @@ void MainWindow::spi_recv(){
 
                     QString recvFileHeadInfo = "新文件开始接收! 文件名:" + RecvFileName + " 文件大小:" + QString::number(RecvFileSize);
                     ui->vlcRecvtextBrowser->append(recvFileHeadInfo);
-                    ui->progressBar_2->setMinimum(0);
-                    ui->progressBar_2->setMaximum(RecvFileSize);
-
                     RecvFile.setFileName("/home/pi/Desktop/" + RecvFileName);
                     if(!RecvFile.open(QIODevice::WriteOnly)){
                         QMessageBox::about(NULL, "提示", "文件写入错误");
                         return;
                     }
                     filehead_done = true;
+                    recvStream = new QDataStream(&RecvFile);
+                    recvStream->setVersion(QDataStream::Qt_5_7);
                 }
                 // 文件数据写入
                 else{
-                    qint64 len = RecvFile.write((char*)vlcrecv);
+                    qint64 len;
+                    // 最后一块数据
+                    if(RecvFileSize-recvSize<239){
+                        quint8 zeros = 0;
+                        quint8 i = 238;
+                        while(vlcrecv[i]==0){
+                            i--;
+                            zeros++;
+                        }
+                        len = recvStream->writeRawData((char*)vlcrecv, sizeof(vlcrecv)/sizeof(quint8)-zeros);
+                    }
+                    else len = recvStream->writeRawData((char*)vlcrecv, sizeof(vlcrecv)/sizeof(quint8));
+//                    qint64 len = RecvFile.write((char*)vlcrecv);
                     if(len<0){
                         QMessageBox::about(NULL, "提示", "文件写入失败");
                         return;
                     }
-                    recvSize += len;
+                    else recvSize += len;
                     // 文件接收完成
                     if(recvSize >= RecvFileSize){
                         QString recvFileInfo = "文件接收完成! 文件保存路径:/home/pi/Desktop/ 文件名:" + RecvFileName + " 文件大小:" + QString::number(RecvFileSize);
@@ -198,33 +208,10 @@ void MainWindow::spi_recv(){
                         filehead_done = false;
                         RecvFileSize=0;
                         recvSize=0;
+                        delete recvStream;
                     }
                 }
-    }
-
-            if(ui->modeRecvcomboBox->currentText()=="图片"){
-                unsigned char vlcrecv[239]={0};
-                wiringPiSPIDataRW(1, vlcrecv, 239);
-
-                // 图片头信息
-                if(!filehead_done){
-                    RecvFileName = QString((char*)vlcrecv).section("##",0,0);
-                    RecvFileSize = QString((char*)vlcrecv).section("##",1,1).toInt();
-                    recvSize=0;
-
-                    RecvFile.setFileName(RecvFileName);
-                    if(!RecvFile.open(QIODevice::WriteOnly)){
-                        QMessageBox::about(NULL, "提示", "图片写入错误");
-                        return;
-                    }
-                }
-                // 图片数据写入
-                else{
-                    RecvFile.write((char*)vlcrecv);
-                }
-
             }
-
          }
     }
 }
@@ -234,10 +221,12 @@ void MainWindow::spi_init(){
     if(wiringPiSetup()<0){
       QMessageBox::about(NULL, "提示", "wiringPi初始化失败！");
      }
-    if(spiFd0 = wiringPiSPISetup(0,6250000)==-1){
+    QString spiRateSend = ui->spiRateSendcomboBox->currentText();
+    QString spiRateRecv = ui->spiRateRecvcomboBox->currentText();
+    if(spiFd0 = wiringPiSPISetup(0,spiRateSend.toInt())==-1){
        QMessageBox::about(NULL, "提示", "SPI0初始化失败！");
      }
-    if(spiFd1 = wiringPiSPISetup(1,6250000)==-1){
+    if(spiFd1 = wiringPiSPISetup(1,spiRateRecv.toInt())==-1){
        QMessageBox::about(NULL, "提示", "SPI1初始化失败！");
      }
 
@@ -808,6 +797,7 @@ void MainWindow::on_selectFileButton_clicked(){
         QString fileinfo = "文件名:" + SendFileName + " 文件大小:" + QString::number(SendFileSize);
         ui->label_fileinfo->setText(fileinfo);
         ui->sendFileButton->setEnabled(true);
+        file_is_img = false;
     }
     else{
         QMessageBox::about(NULL, "提示", "选择文件路径出错");
@@ -832,21 +822,21 @@ void MainWindow::sendFile(){
     char* tmphead = head.toUtf8().data();
     strcpy(filehead, tmphead);
     wiringPiSPIDataRW(0, (unsigned char*)filehead, 239);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-//    QPixmap pix(SendFileName);
-//    QBuffer buffer;
-//    buffer.open(QIODevice::ReadWrite);
-//    pix.save(&buffer,"jpg");
-//    quint32 pix_len = (quint32)buffer.data().size();
-//    QByteArray dataArray;
-//    dataArray.append(buffer.data());
-
-     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    QDataStream sendStream(&SendFile);
+    sendStream.setVersion(QDataStream::Qt_5_9);
     //发送文件
     while(!file_send_done){
-        char filedata[239] = {0};
-        qint64 len = SendFile.read(filedata, 239);
-        wiringPiSPIDataRW(0, (unsigned char*)filedata, 239);
+        quint8 filedata[239] = {0};
+        qint64 len = sendStream.readRawData((char*)filedata, 239);
+//            char filedata[239] = {0};
+//            qint64 len = SendFile.read(filedata, 239);
+        if(len<0){
+            QMessageBox::about(NULL, "提示", "文件读取失败");
+            return;
+        }
+        wiringPiSPIDataRW(0, filedata, 239);
         sendSize += len;
 
         if(sendSize == SendFileSize) file_send_done = true;
@@ -861,40 +851,4 @@ void MainWindow::on_sendFileButton_clicked(){
 
     std::thread th2(std::bind(&MainWindow::updateProgressSend,this));
     th2.detach();
-}
-
-void MainWindow::updateProgressRecv(){
-    while(!file_recv_done){
-        ui->progressBar_2->setValue(recvSize);
-    }
-    ui->progressBar_2->setValue(RecvFileSize);
-}
-
-void MainWindow::on_imgselectButton_clicked(){
-    QString imgpath = QFileDialog::getOpenFileName(this,tr("选择图像"),"",tr("Images (*.png *.bmp *.jpg *.tif *.GIF )"));
-    if(imgpath.isEmpty())
-        return;
-    else{
-        SendFileName.clear();
-        SendFileSize=0;
-
-        //获取图像信息
-        QFileInfo info(imgpath);
-        SendFileName=info.fileName();//获取文件名字
-        SendFileSize=info.size();
-        sendSize=0;
-        QString imginfo = "图像名:" + SendFileName + " 图像大小:" + QString::number(SendFileSize);
-        ui->label_fileinfo->setText(imginfo);
-        ui->sendFileButton->setEnabled(true);
-
-        QImage* img=new QImage;
-        if(!(img->load(imgpath) ) ){
-            QMessageBox::information(this,tr("提示"),tr("打开图像失败!"));
-            delete img;
-            return;
-        }
-        QLabel* label=new QLabel();
-        label->setPixmap(QPixmap::fromImage(*img));
-        label->show();
-    }
 }

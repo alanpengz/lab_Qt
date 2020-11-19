@@ -4,6 +4,7 @@
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QFile>
+#include <QBuffer>
 
 namespace Ui {
 class MainWindow;
@@ -63,9 +64,9 @@ private slots:
     void on_selectFileButton_clicked();
     void on_sendFileButton_clicked();
     void sendFile();
-    void on_imgselectButton_clicked();
+//    void on_imgselectButton_clicked();
     void updateProgressSend();
-    void updateProgressRecv();
+//    void updateProgressRecv();
 
 private:
     Ui::MainWindow *ui;
@@ -100,6 +101,13 @@ private:
     qint64 recvSize;
     bool filehead_done = false;
     bool file_recv_done = false;
+
+    bool file_is_img = false;
+    QPixmap pixSend;
+    QBuffer pixSendbuffer;
+    QPixmap pixRecv;
+    QBuffer pixRecvbuffer;
+    QDataStream* recvStream;
 };
 
 #endif // MAINWINDOW_H
