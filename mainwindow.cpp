@@ -6,6 +6,8 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QBuffer>
+#include <QDateTime>
+#include <QTextStream>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 #include <thread>
@@ -30,6 +32,12 @@ MainWindow::MainWindow(QWidget *parent) :
     std::thread t1(&MainWindow::serialport_refresh, this);
     t1.detach();
 
+    std::thread t2(&MainWindow::updateTime, this);
+    t2.detach();
+
+    std::thread t3(&MainWindow::updateTemp, this);
+    t3.detach();
+
     ui->X_upButton->setEnabled(false);
     ui->X_downButton->setEnabled(false);
     ui->Y_upButton->setEnabled(false);
@@ -39,6 +47,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->Z_upButton->setEnabled(false);
     ui->Z_downButton->setEnabled(false);
     ui->speedResetButton->setEnabled(false);
+    ui->X_sonic_upButton->setEnabled(false);
+    ui->X_sonic_downButton->setEnabled(false);
+    ui->Y_sonic_upButton->setEnabled(false);
+    ui->Y_sonic_downButton->setEnabled(false);
+    ui->M_sonic_upButton->setEnabled(false);
+    ui->M_sonic_downButton->setEnabled(false);
+    ui->Z_sonic_upButton->setEnabled(false);
+    ui->Z_sonic_downButton->setEnabled(false);
+    ui->speedreset_sonicButton->setEnabled(false);
+
     ui->Xspeed_label->setText(QString::number(X));
     ui->Yspeed_label->setText(QString::number(Y));
     ui->Mspeed_label->setText(QString::number(M));
@@ -160,6 +178,7 @@ void MainWindow::spi_recv(){
 //                unsigned char vlcrecv[239]={0};
                 quint8 vlcrecv[239]={0};
                 wiringPiSPIDataRW(1, vlcrecv, 239);
+                quint8* tmp = vlcrecv;
 
                 // 文件头信息
                 if(!filehead_done){
@@ -480,6 +499,15 @@ void MainWindow::on_openSonicButton_clicked(){
         ui->MButton->setEnabled(true);
         ui->EButton->setEnabled(true);
         ui->sonicSendClearButton->setEnabled(true);
+        ui->X_sonic_upButton->setEnabled(true);
+        ui->X_sonic_downButton->setEnabled(true);
+        ui->Y_sonic_upButton->setEnabled(true);
+        ui->Y_sonic_downButton->setEnabled(true);
+        ui->M_sonic_upButton->setEnabled(true);
+        ui->M_sonic_downButton->setEnabled(true);
+        ui->Z_sonic_upButton->setEnabled(true);
+        ui->Z_sonic_downButton->setEnabled(true);
+        ui->speedreset_sonicButton->setEnabled(true);
     }
     else
     {
@@ -494,6 +522,15 @@ void MainWindow::on_openSonicButton_clicked(){
         ui->MButton->setEnabled(false);
         ui->EButton->setEnabled(false);
         ui->sonicSendClearButton->setEnabled(false);
+        ui->X_sonic_upButton->setEnabled(false);
+        ui->X_sonic_downButton->setEnabled(false);
+        ui->Y_sonic_upButton->setEnabled(false);
+        ui->Y_sonic_downButton->setEnabled(false);
+        ui->M_sonic_upButton->setEnabled(false);
+        ui->M_sonic_downButton->setEnabled(false);
+        ui->Z_sonic_upButton->setEnabled(false);
+        ui->Z_sonic_downButton->setEnabled(false);
+        ui->speedreset_sonicButton->setEnabled(false);
     }
 }
 
@@ -536,6 +573,125 @@ void MainWindow::on_clearSonicRecvButton_clicked(){
 
 void MainWindow::on_sonicSendClearButton_clicked(){
     ui->sonicSendEdit->clear();
+}
+
+void MainWindow::on_X_sonic_upButton_clicked(){
+    if(X<7) X += 1;
+    else X = 7;
+    ui->Xspeed_label->setText(QString::number(X));
+    QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+    QByteArray order_send = order.toUtf8();
+    QString M = "M\r\n";
+    QByteArray MBytes = M.toUtf8();
+    serialSonic.write(MBytes);
+    serialSonic.write(order_send);
+}
+
+void MainWindow::on_X_sonic_downButton_clicked(){
+    if(X>-7) X -= 1;
+    else X = -7;
+    ui->Xspeed_label->setText(QString::number(X));
+    QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+    QByteArray order_send = order.toUtf8();
+    QString M = "M\r\n";
+    QByteArray MBytes = M.toUtf8();
+    serialSonic.write(MBytes);
+    serialSonic.write(order_send);
+}
+
+void MainWindow::on_Y_sonic_upButton_clicked(){
+    if(Y<7) Y += 1;
+    else Y = 7;
+    ui->Yspeed_label->setText(QString::number(Y));
+    QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+    QByteArray order_send = order.toUtf8();
+    QString M = "M\r\n";
+    QByteArray MBytes = M.toUtf8();
+    serialSonic.write(MBytes);
+    serialSonic.write(order_send);
+}
+
+void MainWindow::on_Y_sonic_downButton_clicked(){
+    if(Y>-7) Y -= 1;
+    else Y = -7;
+    ui->Yspeed_label->setText(QString::number(Y));
+    QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+    QByteArray order_send = order.toUtf8();
+    QString M = "M\r\n";
+    QByteArray MBytes = M.toUtf8();
+    serialSonic.write(MBytes);
+    serialSonic.write(order_send);
+}
+
+void MainWindow::on_M_sonic_upButton_clicked(){
+    if(M<7) M += 1;
+    else M = 7;
+    ui->Mspeed_label->setText(QString::number(M));
+    QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+    QByteArray order_send = order.toUtf8();
+    QString M = "M\r\n";
+    QByteArray MBytes = M.toUtf8();
+    serialSonic.write(MBytes);
+    serialSonic.write(order_send);
+}
+
+void MainWindow::on_M_sonic_downButton_clicked(){
+    if(M>-7) M -= 1;
+    else M = -7;
+    ui->Mspeed_label->setText(QString::number(M));
+    QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+    QByteArray order_send = order.toUtf8();
+    QString M = "M\r\n";
+    QByteArray MBytes = M.toUtf8();
+    serialSonic.write(MBytes);
+    serialSonic.write(order_send);
+}
+
+void MainWindow::on_Z_sonic_upButton_clicked(){
+    if(Z<7) Z += 1;
+    else Z = 7;
+    ui->Zspeed_label->setText(QString::number(Z));
+    QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+    QByteArray order_send = order.toUtf8();
+    QString M = "M\r\n";
+    QByteArray MBytes = M.toUtf8();
+    serialSonic.write(MBytes);
+    serialSonic.write(order_send);
+}
+
+void MainWindow::on_Z_sonic_downButton_clicked(){
+    if(Z>-7) Z -= 1;
+    else Z = -7;
+    ui->Zspeed_label->setText(QString::number(Z));
+    QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+    QByteArray order_send = order.toUtf8();
+    QString M = "M\r\n";
+    QByteArray MBytes = M.toUtf8();
+    serialSonic.write(MBytes);
+    serialSonic.write(order_send);
+}
+
+void MainWindow::on_speedreset_sonicButton_clicked(){
+    X=0;Y=0;M=0;Z=0;
+    ui->Xspeed_label->setText(QString::number(X));
+    ui->Yspeed_label->setText(QString::number(Y));
+    ui->Mspeed_label->setText(QString::number(M));
+    ui->Zspeed_label->setText(QString::number(Z));
+    QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+    QByteArray order_send = order.toUtf8();
+    QString M = "M\r\n";
+    QByteArray MBytes = M.toUtf8();
+    serialSonic.write(MBytes);
+    serialSonic.write(order_send);
 }
 
 
@@ -797,7 +953,6 @@ void MainWindow::on_selectFileButton_clicked(){
         QString fileinfo = "文件名:" + SendFileName + " 文件大小:" + QString::number(SendFileSize);
         ui->label_fileinfo->setText(fileinfo);
         ui->sendFileButton->setEnabled(true);
-        file_is_img = false;
     }
     else{
         QMessageBox::about(NULL, "提示", "选择文件路径出错");
@@ -851,4 +1006,39 @@ void MainWindow::on_sendFileButton_clicked(){
 
     std::thread th2(std::bind(&MainWindow::updateProgressSend,this));
     th2.detach();
+}
+
+
+
+// 其他信息
+void MainWindow::updateTime(){
+    while(true){
+        QDateTime dateTime = QDateTime::currentDateTime();
+        QLocale locale = QLocale::Chinese;//指定中文显示
+        //QLocale locale = QLocale::English;//指定英文显示
+        QString strFormat = "当前时间：yyyy-MM-dd hh:mm:ss dddd";
+        QString strDateTime = locale.toString(dateTime, strFormat);
+        ui->label_currentdatetime->setText(strDateTime);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+}
+
+void MainWindow::updateTemp(){
+    while(true){
+        QFile* temp = new QFile("/sys/class/thermal/thermal_zone0/temp");
+        if (!temp->open(QIODevice::ReadOnly|QIODevice::Text)){
+            QMessageBox::about(NULL, "提示", "温度读取失败");
+            return;
+        }
+        else{
+            QTextStream stream(temp);
+            QString string = stream.readAll();
+            temp->close();
+            long s = string.toLong() / 1000;
+            QString tempinfo = "CPU温度:" + QString::number(s) + "℃";
+            ui->label_currentTemp->setText(tempinfo);
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        delete temp;
+    }
 }

@@ -64,9 +64,21 @@ private slots:
     void on_selectFileButton_clicked();
     void on_sendFileButton_clicked();
     void sendFile();
-//    void on_imgselectButton_clicked();
     void updateProgressSend();
 //    void updateProgressRecv();
+
+    void on_X_sonic_upButton_clicked();
+    void on_X_sonic_downButton_clicked();
+    void on_Y_sonic_upButton_clicked();
+    void on_Y_sonic_downButton_clicked();
+    void on_M_sonic_upButton_clicked();
+    void on_M_sonic_downButton_clicked();
+    void on_Z_sonic_upButton_clicked();
+    void on_Z_sonic_downButton_clicked();
+    void on_speedreset_sonicButton_clicked();
+
+    void updateTime();
+    void updateTemp();
 
 private:
     Ui::MainWindow *ui;
@@ -101,12 +113,6 @@ private:
     qint64 recvSize;
     bool filehead_done = false;
     bool file_recv_done = false;
-
-    bool file_is_img = false;
-    QPixmap pixSend;
-    QBuffer pixSendbuffer;
-    QPixmap pixRecv;
-    QBuffer pixRecvbuffer;
     QDataStream* recvStream;
 };
 
