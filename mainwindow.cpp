@@ -141,8 +141,9 @@ void MainWindow::spi_recv(){
                     crc_cal[3] = crc_code;
 
                     // 显示CRC
-                    QString CRC = QByteArray(crc_cal).toHex().data();
-                    ui->label_crcRecv->setText(CRC.mid(0,2)+" "+CRC.mid(2,2)+" "+CRC.mid(4,2)+" "+CRC.mid(6,2));
+                    QString CRC_REC = QByteArray(crc_recv).toHex().data();
+                    QString CRC_CAL = QByteArray(crc_cal).toHex().data();
+                    ui->label_crcRecv->setText( "crc_recv: "+ CRC_REC.mid(0,2)+" "+CRC_REC.mid(2,2)+" "+CRC_REC.mid(4,2)+" "+CRC_REC.mid(6,2)+", crc_cal: " + CRC_CAL.mid(0,2)+" "+CRC_CAL.mid(2,2)+" "+CRC_CAL.mid(4,2)+" "+CRC_CAL.mid(6,2));
                     if(strcmp(crc_recv, crc_cal)){
                         crc_check_right = true;
                     }
