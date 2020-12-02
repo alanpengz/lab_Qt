@@ -38,6 +38,9 @@ MainWindow::MainWindow(QWidget *parent) :
     std::thread t3(&MainWindow::updateTemp, this);
     t3.detach();
 
+    std::thread t4(&MainWindow::update_VLC_bitrate, this);
+    t4.detach();
+
     ui->X_upButton->setEnabled(false);
     ui->X_downButton->setEnabled(false);
     ui->Y_upButton->setEnabled(false);
@@ -261,6 +264,12 @@ void MainWindow::spi_init(){
     digitalWrite(25, 0);
     sleep(1);
     digitalWrite(25, 1); // 复位脚置高
+
+    // vlc FPGA bitrate, dafault 1.25Mbps, (0,0)
+    pinMode(22, OUTPUT);
+    pinMode(23, OUTPUT);
+    digitalWrite(22, 0);
+    digitalWrite(23, 0);
 
     std::thread t(&MainWindow::spi_recv, this);
     t.detach();
@@ -1061,5 +1070,32 @@ void MainWindow::updateTemp(){
         }
         std::this_thread::sleep_for(std::chrono::seconds(3));
         delete temp;
+    }
+}
+
+void MainWindow::update_VLC_bitrate(){
+    QString old_bitrate = ui->vlcBitRatecomboBox->currentText();
+    while(true){
+        QString bitrate = ui->vlcBitRatecomboBox->currentText();
+        if(bitrate!=old_bitrate){
+            if(bitrate=="1.25Mbps"){
+                digitalWrite(22, 0);
+                digitalWrite(23, 0);
+            }
+            if(bitrate=="2Mbps"){
+                digitalWrite(22, 1);
+                digitalWrite(23, 0);
+            }
+            if(bitrate=="3.125Mbps"){
+                digitalWrite(22, 0);
+                digitalWrite(23, 1);
+            }
+            if(bitrate=="5Mbps"){
+                digitalWrite(22, 1);
+                digitalWrite(23, 1);
+            }
+            old_bitrate = bitrate;
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }

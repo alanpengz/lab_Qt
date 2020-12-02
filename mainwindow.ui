@@ -898,7 +898,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>570</y>
+      <y>600</y>
       <width>105</width>
       <height>21</height>
      </rect>
@@ -916,7 +916,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>730</y>
+      <y>760</y>
       <width>81</width>
       <height>21</height>
      </rect>
@@ -934,7 +934,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>700</y>
+      <y>730</y>
       <width>73</width>
       <height>23</height>
      </rect>
@@ -952,7 +952,7 @@
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>700</y>
+      <y>730</y>
       <width>121</width>
       <height>23</height>
      </rect>
@@ -970,7 +970,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>600</y>
+      <y>630</y>
       <width>73</width>
       <height>23</height>
      </rect>
@@ -988,7 +988,7 @@
     <property name="geometry">
      <rect>
       <x>70</x>
-      <y>600</y>
+      <y>630</y>
       <width>51</width>
       <height>21</height>
      </rect>
@@ -1003,7 +1003,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>670</y>
+      <y>700</y>
       <width>131</width>
       <height>28</height>
      </rect>
@@ -1021,7 +1021,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>630</y>
+      <y>660</y>
       <width>73</width>
       <height>20</height>
      </rect>
@@ -1042,7 +1042,7 @@
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>630</y>
+      <y>660</y>
       <width>41</width>
       <height>20</height>
      </rect>
@@ -1060,7 +1060,7 @@
     <property name="geometry">
      <rect>
       <x>120</x>
-      <y>630</y>
+      <y>660</y>
       <width>31</width>
       <height>21</height>
      </rect>
@@ -1655,6 +1655,55 @@
     <property name="text">
      <string>接收</string>
     </property>
+   </widget>
+   <widget class="QLabel" name="label_29">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>560</y>
+      <width>121</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>VLC FPGA 速率:</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="vlcBitRatecomboBox">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>560</y>
+      <width>101</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>1.25Mbps</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>2Mbps</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>3.125Mbps</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>5Mbps</string>
+     </property>
+    </item>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
