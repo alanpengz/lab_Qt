@@ -80,6 +80,9 @@ private slots:
     void updateTime();
     void updateTemp();
 
+    void write24zero();
+    void vlcsend(char* vlcsend);
+
 private:
     Ui::MainWindow *ui;
     QSerialPort serialROV;

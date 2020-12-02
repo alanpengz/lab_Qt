@@ -71,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->wumalvTimeEdit->setText("1000");
     ui->label_wumalv->setText("0");
     ui->sendFileButton->setEnabled(false);
+    ui->ParadoxcheckBox->setEnabled(false);
 }
 
 MainWindow::~MainWindow()
@@ -107,11 +108,13 @@ void MainWindow::on_startSpiRecvButton_clicked(){
         ui->startSpiRecvButton->setText(QString("关闭接收"));
         if(!spiRecv){
             digitalWrite(24, 0);
+            ui->ParadoxcheckBox->setEnabled(true);
         }
     }
     else{
         ui->startSpiRecvButton->setText(QString("开启接收"));
         digitalWrite(24, 1);
+        ui->ParadoxcheckBox->setEnabled(false);
     }
 }
 
@@ -125,7 +128,7 @@ void MainWindow::spi_recv(){
 
                 // CRC
                 if(ui->CRCrecvcheckBox->isChecked()){
-                    char* crc_recv = new char[4];
+                    char crc_recv[4] = {0};
                     for(int i=0; i<4; i++){
                         crc_recv[i] = vlcrecv[i];
                     }
@@ -134,7 +137,7 @@ void MainWindow::spi_recv(){
                         tmp++;
                     }
                     uint32_t crc_code = getCRC((char*)tmp, strlen((char*)tmp));
-                    char crc_cal[4];
+                    char crc_cal[4]={0};
                     crc_cal[0] = crc_code >> 24;
                     crc_cal[1] = crc_code >> 16;
                     crc_cal[2] = crc_code >> 8;
@@ -144,13 +147,14 @@ void MainWindow::spi_recv(){
                     QString CRC_REC = QByteArray(crc_recv).toHex().data();
                     QString CRC_CAL = QByteArray(crc_cal).toHex().data();
                     ui->label_crcRecv->setText( "crc_recv: "+ CRC_REC.mid(0,2)+" "+CRC_REC.mid(2,2)+" "+CRC_REC.mid(4,2)+" "+CRC_REC.mid(6,2)+", crc_cal: " + CRC_CAL.mid(0,2)+" "+CRC_CAL.mid(2,2)+" "+CRC_CAL.mid(4,2)+" "+CRC_CAL.mid(6,2));
-                    if(strcmp(crc_recv, crc_cal)){
+                    if(CRC_REC.mid(0,8) == CRC_CAL.mid(0,8)){
                         crc_check_right = true;
                     }
                     else crc_check_right = false;
-                    delete crc_recv;
                 }
-                else{crc_check_right = false;}
+                else{
+                    crc_check_right = false;
+                }
 
                 QString spirecv = QString((char*)tmp);
                 if(ui->CRCyescheckBox->isChecked()){
@@ -265,16 +269,18 @@ void MainWindow::spi_init(){
 void MainWindow::serialROV_readyRead(){
     //从接收缓冲区中读取数据
     QByteArray buffer = serialROV.readAll();
-    if(buffer.size()){
-        //从界面中读取以前收到的数据
-        QString recv = ui->textBrowser->toPlainText();
-        recv += QString(buffer);
-        //清空以前的显示
-        ui->textBrowser->clear();
-        //重新显示
-        ui->textBrowser->append(recv);
-        if(recv.size()>500){
+    if(ui->rovRecvcheckBox->isChecked()){
+        if(buffer.size()){
+            //从界面中读取以前收到的数据
+            QString recv = ui->textBrowser->toPlainText();
+            recv += QString(buffer);
+            //清空以前的显示
             ui->textBrowser->clear();
+            //重新显示
+            ui->textBrowser->append(recv);
+            if(recv.size()>500){
+                ui->textBrowser->clear();
+            }
         }
     }
 }
@@ -738,6 +744,15 @@ QString gettime(){
       return year+"-"+mon+"-"+day+" "+hour+":"+min+":"+sec+"\n";
   }
 
+void MainWindow::write24zero(){
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    digitalWrite(24, 0);
+}
+
+void MainWindow::vlcsend(char* vlcsend){
+    wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
+}
+
 void MainWindow::on_vlcSendButton_clicked(){
     if(ui->ParadoxcheckBox->isChecked()){
         digitalWrite(24, 1);
@@ -767,10 +782,15 @@ void MainWindow::on_vlcSendButton_clicked(){
     }
     else strcpy(vlcsend, tmp);
 
-    wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
+    std::thread th1(std::bind(&MainWindow::vlcsend,this, vlcsend));
+    th1.join();
+//    wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
+
     if(ui->ParadoxcheckBox->isChecked()){
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        digitalWrite(24, 0);
+        std::thread th(std::bind(&MainWindow::write24zero,this));
+        th.detach();
+//        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+//        digitalWrite(24, 0);
     }
 }
 
@@ -822,8 +842,8 @@ void MainWindow::spi_loopSend(){
         std::this_thread::sleep_for(std::chrono::milliseconds(interval));
     }
     if(ui->ParadoxcheckBox->isChecked()){
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        digitalWrite(24, 0);
+        std::thread th(std::bind(&MainWindow::write24zero,this));
+        th.detach();
     }
 }
 

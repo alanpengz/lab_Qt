@@ -301,7 +301,7 @@
      </font>
     </property>
     <property name="text">
-     <string>ROV状态</string>
+     <string>ROV状态: </string>
     </property>
    </widget>
    <widget class="QLabel" name="label_8">
@@ -1641,6 +1641,19 @@
     </property>
     <property name="text">
      <string>https://github.com/alanpengz/lab_Qt.git</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="rovRecvcheckBox">
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>260</y>
+      <width>61</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>接收</string>
     </property>
    </widget>
   </widget>
