@@ -103,6 +103,9 @@ private:
     double wumalv = 0;
     double Acounts = 0;
     double Ycounts = 0;
+    double ber = 0;
+    double Acounts_bits = 0;
+    double Ycounts_bits = 0;
     int wumalv_sendnums = 0;
 
     QFile SendFile;

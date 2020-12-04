@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1002</width>
-    <height>954</height>
+    <height>988</height>
    </rect>
   </property>
   <property name="font">
@@ -915,8 +915,8 @@
    <widget class="QPushButton" name="clearWumalvButton">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>760</y>
+      <x>540</x>
+      <y>900</y>
       <width>81</width>
       <height>21</height>
      </rect>
@@ -927,14 +927,14 @@
      </font>
     </property>
     <property name="text">
-     <string>清空误码率</string>
+     <string>清空</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_18">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>730</y>
+      <x>540</x>
+      <y>860</y>
       <width>73</width>
       <height>23</height>
      </rect>
@@ -945,14 +945,14 @@
      </font>
     </property>
     <property name="text">
-     <string>误码率: </string>
+     <string>误字符率: </string>
     </property>
    </widget>
    <widget class="QLabel" name="label_wumalv">
     <property name="geometry">
      <rect>
-      <x>60</x>
-      <y>730</y>
+      <x>610</x>
+      <y>860</y>
       <width>121</width>
       <height>23</height>
      </rect>
@@ -1002,8 +1002,8 @@
    <widget class="QCheckBox" name="wumalvRecvcheckBox">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>700</y>
+      <x>540</x>
+      <y>830</y>
       <width>131</width>
       <height>28</height>
      </rect>
@@ -1201,8 +1201,8 @@
    <widget class="QPushButton" name="selectFileButton">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>840</y>
+      <x>10</x>
+      <y>740</y>
       <width>81</width>
       <height>51</height>
      </rect>
@@ -1214,8 +1214,8 @@
    <widget class="QLabel" name="label_20">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>810</y>
+      <x>10</x>
+      <y>710</y>
       <width>73</width>
       <height>23</height>
      </rect>
@@ -1233,8 +1233,8 @@
    <widget class="QPushButton" name="sendFileButton">
     <property name="geometry">
      <rect>
-      <x>110</x>
-      <y>840</y>
+      <x>100</x>
+      <y>740</y>
       <width>51</width>
       <height>51</height>
      </rect>
@@ -1297,9 +1297,9 @@
    <widget class="QLabel" name="label_fileinfo">
     <property name="geometry">
      <rect>
-      <x>170</x>
+      <x>10</x>
       <y>840</y>
-      <width>521</width>
+      <width>361</width>
       <height>23</height>
      </rect>
     </property>
@@ -1310,8 +1310,8 @@
    <widget class="QProgressBar" name="progressBar">
     <property name="geometry">
      <rect>
-      <x>170</x>
-      <y>860</y>
+      <x>10</x>
+      <y>800</y>
       <width>191</width>
       <height>31</height>
      </rect>
@@ -1704,6 +1704,32 @@
       <string>5Mbps</string>
      </property>
     </item>
+   </widget>
+   <widget class="QLabel" name="label_31">
+    <property name="geometry">
+     <rect>
+      <x>570</x>
+      <y>880</y>
+      <width>51</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>BER:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_ber">
+    <property name="geometry">
+     <rect>
+      <x>610</x>
+      <y>880</y>
+      <width>121</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">

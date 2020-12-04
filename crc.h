@@ -6,6 +6,9 @@
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
+#include <bitset>
+#include <string>
+#include <algorithm>
 
 using namespace std;
 
@@ -74,6 +77,22 @@ uint16_t checksum(unsigned char* buf, int nLength){
     }
 
     return (~sum) & 0xffff;
+}
+
+string StrToBitStr(string str)
+{
+    bitset<496> bstr ;
+    for(int i=0;i<62;i++)
+    {
+        bitset<8> bits =  bitset<8>(str[i]);
+        for(int j = 0;j<8;j++)
+        {
+            bstr[i*8+j] = bits[7-j];
+        }
+    }
+    string s = bstr.to_string();
+    reverse(begin(s),end(s));
+    return s;
 }
 
 #endif // CRC_H

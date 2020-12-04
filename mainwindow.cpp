@@ -169,13 +169,24 @@ void MainWindow::spi_recv(){
 
                 //统计误码率
                 if(ui->wumalvRecvcheckBox->isChecked()){
-                    QString words = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-                    for(int i=0; i<min(words.size(), spirecv.size());i++){
-                        if(spirecv[i]==words[i]) Ycounts++;
-                        Acounts++;
+                    if(spirecv.size()){
+                        QString words_bits = "0011000100110010001100110011010000110101001101100011011100111000001110010011000001100001011000100110001101100100011001010110011001100111011010000110100101101010011010110110110001101101011011100110111101110000011100010111001001110011011101000111010101110110011101110111100001111001011110100100000101000010010000110100010001000101010001100100011101001000010010010100101001001011010011000100110101001110010011110101000001010001010100100101001101010100010101010101011001010111010110000101100101011010";
+                        QString words = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                        QString recv_bits = QString::fromStdString(StrToBitStr(spirecv.toStdString()));
+                        for(int i=0; i<min(words.size(), spirecv.size());i++){
+                            if(spirecv[i]==words[i]) Ycounts++;
+                            Acounts++;
+                        }
+                        for(int j=0; j<min(words_bits.size(), recv_bits.size());j++){
+                            if(words_bits[j]==recv_bits[j]) Ycounts_bits++;
+                            Acounts_bits++;
+                        }
+
+                        wumalv = 1-(Ycounts / Acounts);
+                        ber = 1-(Ycounts_bits / Acounts_bits);
+                        ui->label_wumalv->setText(QString::number(wumalv, 10, 6));
+                        ui->label_ber->setText(QString::number(ber, 10, 6));
                     }
-                    wumalv = 1-(Ycounts / Acounts);
-                    ui->label_wumalv->setText(QString::number(wumalv, 10, 6));
                 }
                 if(spirecv.size()>10000){
                     ui->vlcRecvtextBrowser->clear();
@@ -946,7 +957,11 @@ void MainWindow::on_wumalvButton_clicked(){
 }
 
 void MainWindow::on_clearWumalvButton_clicked(){
-    ui->label_wumalv->clear();
+    ui->label_wumalv->setText("0");
+    ui->label_ber->setText("0");
+    ber = 0;
+    Ycounts_bits = 0;
+    Ycounts_bits = 0;
     wumalv = 0;
     Acounts = 0;
     Ycounts = 0;
