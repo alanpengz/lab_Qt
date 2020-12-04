@@ -607,7 +607,7 @@ void MainWindow::on_X_sonic_upButton_clicked(){
     else X = 7;
     ui->Xspeed_label->setText(QString::number(X));
     QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
-            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$" + "\r\n";
     QByteArray order_send = order.toUtf8();
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
@@ -620,7 +620,7 @@ void MainWindow::on_X_sonic_downButton_clicked(){
     else X = -7;
     ui->Xspeed_label->setText(QString::number(X));
     QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
-            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$" + "\r\n";
     QByteArray order_send = order.toUtf8();
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
@@ -633,7 +633,7 @@ void MainWindow::on_Y_sonic_upButton_clicked(){
     else Y = 7;
     ui->Yspeed_label->setText(QString::number(Y));
     QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
-            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$" + "\r\n";
     QByteArray order_send = order.toUtf8();
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
@@ -646,7 +646,7 @@ void MainWindow::on_Y_sonic_downButton_clicked(){
     else Y = -7;
     ui->Yspeed_label->setText(QString::number(Y));
     QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
-            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$" + "\r\n";
     QByteArray order_send = order.toUtf8();
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
@@ -659,7 +659,7 @@ void MainWindow::on_M_sonic_upButton_clicked(){
     else M = 7;
     ui->Mspeed_label->setText(QString::number(M));
     QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
-            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$" + "\r\n";
     QByteArray order_send = order.toUtf8();
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
@@ -672,7 +672,7 @@ void MainWindow::on_M_sonic_downButton_clicked(){
     else M = -7;
     ui->Mspeed_label->setText(QString::number(M));
     QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
-            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$" + "\r\n";
     QByteArray order_send = order.toUtf8();
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
@@ -685,7 +685,7 @@ void MainWindow::on_Z_sonic_upButton_clicked(){
     else Z = 7;
     ui->Zspeed_label->setText(QString::number(Z));
     QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
-            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$" + "\r\n";
     QByteArray order_send = order.toUtf8();
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
@@ -698,7 +698,7 @@ void MainWindow::on_Z_sonic_downButton_clicked(){
     else Z = -7;
     ui->Zspeed_label->setText(QString::number(Z));
     QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
-            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$" + "\r\n";
     QByteArray order_send = order.toUtf8();
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
@@ -713,7 +713,7 @@ void MainWindow::on_speedreset_sonicButton_clicked(){
     ui->Mspeed_label->setText(QString::number(M));
     ui->Zspeed_label->setText(QString::number(Z));
     QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
-            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$" + "\r\n";
     QByteArray order_send = order.toUtf8();
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
