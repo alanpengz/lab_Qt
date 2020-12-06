@@ -83,6 +83,7 @@ private slots:
     void write24zero();
     void vlcsend(char* vlcsend);
     void update_VLC_bitrate();
+    void updateROVSpeed();
 
 private:
     Ui::MainWindow *ui;

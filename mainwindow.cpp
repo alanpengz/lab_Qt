@@ -41,6 +41,9 @@ MainWindow::MainWindow(QWidget *parent) :
     std::thread t4(&MainWindow::update_VLC_bitrate, this);
     t4.detach();
 
+    std::thread t5(std::bind(&MainWindow::updateROVSpeed,this));
+    t5.detach();
+
     ui->X_upButton->setEnabled(false);
     ui->X_downButton->setEnabled(false);
     ui->Y_upButton->setEnabled(false);
@@ -291,11 +294,8 @@ void MainWindow::serialROV_readyRead(){
     QByteArray buffer = serialROV.readAll();
     if(ui->rovRecvcheckBox->isChecked()){
         if(buffer.size()){
-            //从界面中读取以前收到的数据
-            QString recv = ui->textBrowser->toPlainText();
-            recv += QString(buffer);
-            //清空以前的显示
             ui->textBrowser->clear();
+            QString recv = QString(buffer);
             //重新显示
             ui->textBrowser->append(recv);
             if(recv.size()>500){
@@ -1112,5 +1112,15 @@ void MainWindow::update_VLC_bitrate(){
             old_bitrate = bitrate;
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+}
+
+void MainWindow::updateROVSpeed(){
+    while(true){
+        QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
+                + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+        QByteArray order_send = order.toUtf8();
+        serialROV.write(order_send);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
