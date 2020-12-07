@@ -1127,3 +1127,59 @@ void MainWindow::updateROVSpeed(){
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
+
+void MainWindow::autodrive(){
+    bool alignment = false;
+    while ((!alignment)){
+        M = -2;//右转
+        ui->Mspeed_label->setText(QString::number(M));
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        QString text = ui->vlcRecvtextBrowser->toPlainText();
+        //经历对准时刻
+        if(text.contains("0")){
+            M = 0;//停转
+            ui->Mspeed_label->setText(QString::number(M));
+
+            ui->vlcRecvtextBrowser->clear();//清除接收框内容，等待3s确定是否对准
+            std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+            text = ui->vlcRecvtextBrowser->toPlainText();
+            //已对准
+            if(text.contains("0")){
+                alignment = true;
+                ui->autodriveButton->setText(tr("开启自动寻找光源"));
+            }
+            //由于惯性转过了头
+            else{
+                while((!alignment)){
+                    M = 2;//左转
+                    ui->Mspeed_label->setText(QString::number(M));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+                    //经历对准时刻
+                    text = ui->vlcRecvtextBrowser->toPlainText();
+                    if(text.contains("0")){
+                        M = 0;//停转
+                        ui->Mspeed_label->setText(QString::number(M));
+                        ui->vlcRecvtextBrowser->clear();//清除接收框内容，等待3s确定是否对准
+                        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+                        text = ui->vlcRecvtextBrowser->toPlainText();
+                        if (text.contains("0"))//已对准
+                        {
+                            alignment = true;
+                            ui->autodriveButton->setText(tr("开启自动寻找光源"));
+                        }
+                        else break;
+                    }
+               }
+           }
+       }
+   }
+}
+
+void MainWindow::on_autodriveButton_clicked(){
+    if(ui->autodriveButton->text()==QString("开启自动寻找光源")){
+        ui->autodriveButton->setText(tr("关闭自动寻找光源"));
+        std::thread t(std::bind(&MainWindow::autodrive,this));
+        t.detach();
+    }
+}

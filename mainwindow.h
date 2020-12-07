@@ -85,6 +85,9 @@ private slots:
     void update_VLC_bitrate();
     void updateROVSpeed();
 
+    void autodrive();
+    void on_autodriveButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     QSerialPort serialROV;
