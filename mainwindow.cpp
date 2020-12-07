@@ -41,9 +41,6 @@ MainWindow::MainWindow(QWidget *parent) :
     std::thread t4(&MainWindow::update_VLC_bitrate, this);
     t4.detach();
 
-    std::thread t5(std::bind(&MainWindow::updateROVSpeed,this));
-    t5.detach();
-
     ui->X_upButton->setEnabled(false);
     ui->X_downButton->setEnabled(false);
     ui->Y_upButton->setEnabled(false);
@@ -369,6 +366,11 @@ void MainWindow::on_openButton_clicked(){
             QMessageBox::about(NULL, "提示", "无法打开串口！");
             return;
         }
+        ROV_is_open = true;
+        //循环更新rov速度
+        std::thread t5(std::bind(&MainWindow::updateROVSpeed,this));
+        t5.detach();
+
         //下拉失能
         ui->serialBox->setEnabled(false);
         ui->openButton->setText(QString("关闭串口"));
@@ -387,6 +389,7 @@ void MainWindow::on_openButton_clicked(){
     {
         //关闭串口
         serialROV.close();
+        ROV_is_open = false;
         //下拉使能
         ui->serialBox->setEnabled(true);
         ui->openButton->setText(QString("打开串口"));
@@ -1116,7 +1119,7 @@ void MainWindow::update_VLC_bitrate(){
 }
 
 void MainWindow::updateROVSpeed(){
-    while(true){
+    while(ROV_is_open){
         QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
                 + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
         QByteArray order_send = order.toUtf8();

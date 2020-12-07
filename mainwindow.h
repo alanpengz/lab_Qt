@@ -92,6 +92,7 @@ private:
     QList<QSerialPortInfo> ports;
     qint32 spiFd0;
     qint32 spiFd1;
+    bool ROV_is_open = false;
     int X=0;
     int Y=0;
     int M=0;
