@@ -89,6 +89,12 @@ private slots:
     void on_autodriveButton_clicked();
     void send_rov_order();
 
+    void on_initROVsendButton_clicked();
+
+    void on_initROVrecvButton_clicked();
+
+    void on_rmButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     QSerialPort serialROV;

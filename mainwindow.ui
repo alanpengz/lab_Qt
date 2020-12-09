@@ -1746,6 +1746,45 @@
      <string>开启自动寻找光源</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="initROVsendButton">
+    <property name="geometry">
+     <rect>
+      <x>500</x>
+      <y>460</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>初始化发送</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="initROVrecvButton">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>460</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>初始化接收</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="rmButton">
+    <property name="geometry">
+     <rect>
+      <x>590</x>
+      <y>460</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>回车换行</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

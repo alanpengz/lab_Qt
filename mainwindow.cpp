@@ -76,6 +76,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->sendFileButton->setEnabled(false);
     ui->ParadoxcheckBox->setEnabled(false);
     ui->rovRecvcheckBox->setChecked(true);
+    ui->initROVsendButton->setEnabled(false);
+    ui->initROVrecvButton->setEnabled(false);
+    ui->rmButton->setEnabled(false);
 }
 
 MainWindow::~MainWindow()
@@ -320,11 +323,11 @@ void MainWindow::serialSonic_readyRead(){
         if(index>=0){
             QString orderVal = recv.mid(index+17,6); //解析出的指令
             if(orderVal.startsWith("#") && orderVal.endsWith("$")){
-                if(!serialROV.open(QIODevice::ReadWrite)){
-                    QMessageBox::about(NULL, "提示", "指令已识别,ROV串口未打开！");
-                    return;
-                }
-                else{
+//                if(!serialROV.open(QIODevice::ReadWrite)){
+//                    QMessageBox::about(NULL, "提示", "指令已识别,ROV串口未打开！");
+//                    return;
+//                }
+//                else{
                     QByteArray order_send = orderVal.toUtf8();
                     serialROV.write(order_send);
                     ui->sonicOrderlabel->setText(orderVal);
@@ -344,7 +347,7 @@ void MainWindow::serialSonic_readyRead(){
                     ui->Yspeed_label->setText(QY);
                     ui->Mspeed_label->setText(QM);
                     ui->Zspeed_label->setText(QZ);
-                }
+//                }
             }
         }
     }
@@ -540,6 +543,9 @@ void MainWindow::on_openSonicButton_clicked(){
         ui->Z_sonic_upButton->setEnabled(true);
         ui->Z_sonic_downButton->setEnabled(true);
         ui->speedreset_sonicButton->setEnabled(true);
+        ui->initROVsendButton->setEnabled(true);
+        ui->initROVrecvButton->setEnabled(true);
+        ui->rmButton->setEnabled(true);
     }
     else
     {
@@ -563,6 +569,9 @@ void MainWindow::on_openSonicButton_clicked(){
         ui->Z_sonic_upButton->setEnabled(false);
         ui->Z_sonic_downButton->setEnabled(false);
         ui->speedreset_sonicButton->setEnabled(false);
+        ui->initROVsendButton->setEnabled(false);
+        ui->initROVrecvButton->setEnabled(false);
+        ui->rmButton->setEnabled(false);
     }
 }
 
@@ -1198,4 +1207,57 @@ void MainWindow::on_autodriveButton_clicked(){
         std::thread t(std::bind(&MainWindow::autodrive,this));
         t.detach();
     }
+}
+
+
+void MainWindow::on_initROVsendButton_clicked(){
+    QString D = "D\r\n";
+    QString C = "C\r\n";
+    QString Cnum = "80\r\n";
+    QString A = "A\r\n";
+    QString Anum = "15\r\n";
+
+    QByteArray DB = D.toUtf8();
+    QByteArray CB = C.toUtf8();
+    QByteArray CnumB = Cnum.toUtf8();
+    QByteArray AB = A.toUtf8();
+    QByteArray AnumB = Anum.toUtf8();
+
+    serialSonic.write(DB);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    serialSonic.write(CB);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    serialSonic.write(CnumB);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    serialSonic.write(AB);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    serialSonic.write(AnumB);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    serialSonic.write(AnumB);
+}
+
+void MainWindow::on_initROVrecvButton_clicked(){
+    QString A = "A\r\n";
+    QString C = "C\r\n";
+    QString Cnum = "80\r\n";
+    QString M = "M\r\n";
+
+    QByteArray AB = A.toUtf8();
+    QByteArray CB = C.toUtf8();
+    QByteArray CnumB = Cnum.toUtf8();
+    QByteArray MB = M.toUtf8();
+
+    serialSonic.write(AB);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    serialSonic.write(CB);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    serialSonic.write(CnumB);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    serialSonic.write(MB);
+}
+
+void MainWindow::on_rmButton_clicked(){
+    QString end = "\r\n";
+    QByteArray endB = end.toUtf8();
+    serialSonic.write(endB);
 }
