@@ -87,6 +87,7 @@ private slots:
 
     void autodrive();
     void on_autodriveButton_clicked();
+    void send_rov_order();
 
 private:
     Ui::MainWindow *ui;

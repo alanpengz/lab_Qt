@@ -75,6 +75,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->label_wumalv->setText("0");
     ui->sendFileButton->setEnabled(false);
     ui->ParadoxcheckBox->setEnabled(false);
+    ui->rovRecvcheckBox->setChecked(true);
 }
 
 MainWindow::~MainWindow()
@@ -291,8 +292,9 @@ void MainWindow::serialROV_readyRead(){
     QByteArray buffer = serialROV.readAll();
     if(ui->rovRecvcheckBox->isChecked()){
         if(buffer.size()){
+            QString text = ui->textBrowser->toPlainText();
             ui->textBrowser->clear();
-            QString recv = QString(buffer);
+            QString recv = text + QString(buffer);
             //重新显示
             ui->textBrowser->append(recv);
             if(recv.size()>500){
@@ -368,8 +370,8 @@ void MainWindow::on_openButton_clicked(){
         }
         ROV_is_open = true;
         //循环更新rov速度
-        std::thread t5(std::bind(&MainWindow::updateROVSpeed,this));
-        t5.detach();
+//        std::thread t5(std::bind(&MainWindow::updateROVSpeed, this));
+//        t5.detach();
 
         //下拉失能
         ui->serialBox->setEnabled(false);
@@ -567,9 +569,6 @@ void MainWindow::on_openSonicButton_clicked(){
 void MainWindow::on_sonicSendButton_clicked(){
     QString sonicSend = ui->sonicSendEdit->toPlainText() + "\r\n";
     QByteArray sonicSendBytes = sonicSend.toUtf8();
-    QString M = "M\r\n";
-    QByteArray MBytes = M.toUtf8();
-    serialSonic.write(MBytes);
     serialSonic.write(sonicSendBytes);
 }
 
@@ -615,6 +614,7 @@ void MainWindow::on_X_sonic_upButton_clicked(){
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
     serialSonic.write(MBytes);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     serialSonic.write(order_send);
 }
 
@@ -628,6 +628,7 @@ void MainWindow::on_X_sonic_downButton_clicked(){
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
     serialSonic.write(MBytes);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     serialSonic.write(order_send);
 }
 
@@ -641,6 +642,7 @@ void MainWindow::on_Y_sonic_upButton_clicked(){
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
     serialSonic.write(MBytes);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     serialSonic.write(order_send);
 }
 
@@ -654,6 +656,7 @@ void MainWindow::on_Y_sonic_downButton_clicked(){
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
     serialSonic.write(MBytes);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     serialSonic.write(order_send);
 }
 
@@ -667,6 +670,7 @@ void MainWindow::on_M_sonic_upButton_clicked(){
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
     serialSonic.write(MBytes);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     serialSonic.write(order_send);
 }
 
@@ -680,6 +684,7 @@ void MainWindow::on_M_sonic_downButton_clicked(){
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
     serialSonic.write(MBytes);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     serialSonic.write(order_send);
 }
 
@@ -693,6 +698,7 @@ void MainWindow::on_Z_sonic_upButton_clicked(){
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
     serialSonic.write(MBytes);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     serialSonic.write(order_send);
 }
 
@@ -706,6 +712,7 @@ void MainWindow::on_Z_sonic_downButton_clicked(){
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
     serialSonic.write(MBytes);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     serialSonic.write(order_send);
 }
 
@@ -721,6 +728,7 @@ void MainWindow::on_speedreset_sonicButton_clicked(){
     QString M = "M\r\n";
     QByteArray MBytes = M.toUtf8();
     serialSonic.write(MBytes);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     serialSonic.write(order_send);
 }
 
@@ -1120,12 +1128,16 @@ void MainWindow::update_VLC_bitrate(){
 
 void MainWindow::updateROVSpeed(){
     while(ROV_is_open){
-        QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
-                + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
-        QByteArray order_send = order.toUtf8();
-        serialROV.write(order_send);
+        send_rov_order();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
+}
+
+void MainWindow::send_rov_order(){
+    QString order =  "#" + orderMap[QString::number(X)] + orderMap[QString::number(Y)]
+            + orderMap[QString::number(M)] + orderMap[QString::number(Z)] + "$";
+    QByteArray order_send = order.toUtf8();
+    serialROV.write(order_send);
 }
 
 void MainWindow::autodrive(){
@@ -1133,6 +1145,7 @@ void MainWindow::autodrive(){
     while ((!alignment)){
         M = -2;//右转
         ui->Mspeed_label->setText(QString::number(M));
+        send_rov_order();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
         QString text = ui->vlcRecvtextBrowser->toPlainText();
@@ -1140,6 +1153,7 @@ void MainWindow::autodrive(){
         if(text.contains("0")){
             M = 0;//停转
             ui->Mspeed_label->setText(QString::number(M));
+            send_rov_order();
 
             ui->vlcRecvtextBrowser->clear();//清除接收框内容，等待3s确定是否对准
             std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -1154,12 +1168,14 @@ void MainWindow::autodrive(){
                 while((!alignment)){
                     M = 2;//左转
                     ui->Mspeed_label->setText(QString::number(M));
+                    send_rov_order();
                     std::this_thread::sleep_for(std::chrono::milliseconds(200));
                     //经历对准时刻
                     text = ui->vlcRecvtextBrowser->toPlainText();
                     if(text.contains("0")){
                         M = 0;//停转
                         ui->Mspeed_label->setText(QString::number(M));
+                        send_rov_order();
                         ui->vlcRecvtextBrowser->clear();//清除接收框内容，等待3s确定是否对准
                         std::this_thread::sleep_for(std::chrono::milliseconds(3000));
                         text = ui->vlcRecvtextBrowser->toPlainText();
