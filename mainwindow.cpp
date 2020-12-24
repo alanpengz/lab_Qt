@@ -8,6 +8,7 @@
 #include <QBuffer>
 #include <QDateTime>
 #include <QTextStream>
+#include <QKeyEvent>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 #include <thread>
@@ -1215,7 +1216,7 @@ void MainWindow::on_initROVsendButton_clicked(){
     QString C = "C\r\n";
     QString Cnum = "80\r\n";
     QString A = "A\r\n";
-    QString Anum = "15\r\n";
+    QString Anum = "50\r\n";
 
     QByteArray DB = D.toUtf8();
     QByteArray CB = C.toUtf8();
@@ -1261,3 +1262,17 @@ void MainWindow::on_rmButton_clicked(){
     QByteArray endB = end.toUtf8();
     serialSonic.write(endB);
 }
+
+void MainWindow::keyPressEvent(QKeyEvent *e){
+    if(e->key()==Qt::Key_W) on_X_upButton_clicked();
+    if(e->key()==Qt::Key_S) on_X_downButton_clicked();
+    if(e->key()==Qt::Key_A) on_Y_upButton_clicked();
+    if(e->key()==Qt::Key_D) on_Y_downButton_clicked();
+    if(e->key()==Qt::Key_Q) on_M_upButton_clicked();
+    if(e->key()==Qt::Key_E) on_M_downButton_clicked();
+    if(e->key()==Qt::Key_P) on_Z_downButton_clicked();
+    if(e->key()==Qt::Key_L) on_Z_upButton_clicked();
+    if(e->key()==Qt::Key_R) on_speedResetButton_clicked();
+}
+
+

@@ -94,6 +94,7 @@ private slots:
     void on_initROVrecvButton_clicked();
 
     void on_rmButton_clicked();
+    void keyPressEvent(QKeyEvent *e);
 
 private:
     Ui::MainWindow *ui;
