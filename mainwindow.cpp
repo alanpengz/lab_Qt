@@ -117,18 +117,20 @@ void MainWindow::on_startSpiRecvButton_clicked(){
         if(!spiRecv){
             digitalWrite(24, 0);
             ui->ParadoxcheckBox->setEnabled(true);
+            spiRecv = true;
         }
     }
     else{
         ui->startSpiRecvButton->setText(QString("开启接收"));
         digitalWrite(24, 1);
         ui->ParadoxcheckBox->setEnabled(false);
+        spiRecv = false;
     }
 }
 
 void MainWindow::spi_recv(){
     while(true){
-        if(digitalRead(6)){
+        if(digitalRead(6) && spiRecv){
             if(ui->modeRecvcomboBox->currentText()=="字符"){
                 unsigned char vlcrecv[239]={0};
                 unsigned char* tmp = vlcrecv;
