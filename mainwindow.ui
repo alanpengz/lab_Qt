@@ -18,6 +18,9 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QPushButton" name="X_upButton">
     <property name="geometry">
@@ -1792,7 +1795,7 @@
      <x>0</x>
      <y>0</y>
      <width>1002</width>
-     <height>25</height>
+     <height>29</height>
     </rect>
    </property>
   </widget>

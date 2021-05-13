@@ -15,33 +15,39 @@
 #include <threads.h>
 #include <unistd.h>
 
+//ROV档位字符串指令和档位的对应
 std::map<QString, QString>
 orderMap{{"-7","1"}, {"-6","2"}, {"-5","3"}, {"-4","4"},{"-3","5"},{"-2","6"},{"-1","7"},{"0","8"},{"1","9"},{"2","a"},{"3","b"},{"4","c"},{"5","d"},{"6","e"},{"7","f"}};
 
+//窗口类初始化函数，进行一些初始化操作
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this->setWindowTitle("UWOC Comm(v0.3.0)");
+    this->setWindowTitle("UWOC Comm(v0.3.0)"); //设置窗口标题
 
-    spi_init();
-    //连接serialROV serialSonic信号和槽
+    spi_init(); //SPI接口初始化
+    // 连接信号和槽函数
+    // 基本格式：QObject::connect(sender, SIGNAL(signal()), receiver, SLOT(slot()))
+    // 说明：sender发送信号signal()，receiver通过槽函数slot()接收该信号并执行相应操作
     QObject::connect(&serialROV, &QSerialPort::readyRead, this, &MainWindow::serialROV_readyRead);
     QObject::connect(&serialSonic, &QSerialPort::readyRead, this, &MainWindow::serialSonic_readyRead);
 
+    //串口刷新线程
     std::thread t1(&MainWindow::serialport_refresh, this);
     t1.detach();
-
+    //时间实时显示线程
     std::thread t2(&MainWindow::updateTime, this);
     t2.detach();
-
+    //CPU温度实时显示线程
     std::thread t3(&MainWindow::updateTemp, this);
     t3.detach();
-
+    //更新光通信速率线程
     std::thread t4(&MainWindow::update_VLC_bitrate, this);
     t4.detach();
 
+    //按钮初始化
     ui->X_upButton->setEnabled(false);
     ui->X_downButton->setEnabled(false);
     ui->Y_upButton->setEnabled(false);
@@ -87,6 +93,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+//串口识别刷新函数，每隔1秒刷新并获得可用的串口，以供选择
 void MainWindow::serialport_refresh(){
     //初始
     ui->serialBox->clear();
@@ -111,6 +118,7 @@ void MainWindow::serialport_refresh(){
     }
 }
 
+//点击“光通信的开启接收”
 void MainWindow::on_startSpiRecvButton_clicked(){
     if(ui->startSpiRecvButton->text()==QString("开启接收")){
         ui->startSpiRecvButton->setText(QString("关闭接收"));
@@ -128,44 +136,47 @@ void MainWindow::on_startSpiRecvButton_clicked(){
     }
 }
 
+//SPI接收函数
 void MainWindow::spi_recv(){
     while(true){
         if(digitalRead(6) && spiRecv){
+            //字符接收模式
             if(ui->modeRecvcomboBox->currentText()=="字符"){
                 unsigned char vlcrecv[239]={0};
                 unsigned char* tmp = vlcrecv;
                 wiringPiSPIDataRW(1, vlcrecv, 239);
-
-                // CRC
+                //CRC32校验
                 if(ui->CRCrecvcheckBox->isChecked()){
+                    //接收到的CRC
                     char crc_recv[4] = {0};
                     for(int i=0; i<4; i++){
                         crc_recv[i] = vlcrecv[i];
                     }
-                    // data
+                    //接收到的除去CRC的数据部分
                     for(int i=0; i<4; i++){
                         tmp++;
                     }
+                    //计算接收数据的CRC
                     uint32_t crc_code = getCRC((char*)tmp, strlen((char*)tmp));
+                    //32位uint ---> 4个字符
                     char crc_cal[4]={0};
                     crc_cal[0] = crc_code >> 24;
                     crc_cal[1] = crc_code >> 16;
                     crc_cal[2] = crc_code >> 8;
                     crc_cal[3] = crc_code;
 
-                    // 显示CRC
-                    QString CRC_REC = QByteArray(crc_recv).toHex().data();
-                    QString CRC_CAL = QByteArray(crc_cal).toHex().data();
+                    //将接收到的CRC和计算出的CRC进行对比校验
+                    QString CRC_REC = QByteArray(crc_recv).toHex().data(); //接收到的CRC
+                    QString CRC_CAL = QByteArray(crc_cal).toHex().data();  //计算出的CRC
                     ui->label_crcRecv->setText( "crc_recv: "+ CRC_REC.mid(0,2)+" "+CRC_REC.mid(2,2)+" "+CRC_REC.mid(4,2)+" "+CRC_REC.mid(6,2)+", crc_cal: " + CRC_CAL.mid(0,2)+" "+CRC_CAL.mid(2,2)+" "+CRC_CAL.mid(4,2)+" "+CRC_CAL.mid(6,2));
                     if(CRC_REC.mid(0,8) == CRC_CAL.mid(0,8)){
                         crc_check_right = true;
                     }
                     else crc_check_right = false;
                 }
-                else{
-                    crc_check_right = false;
-                }
+                else crc_check_right = false;
 
+                //无误显示，只显示接收到的校验正确的字符串
                 QString spirecv = QString((char*)tmp);
                 if(ui->CRCyescheckBox->isChecked()){
                     if(crc_check_right){
@@ -200,19 +211,20 @@ void MainWindow::spi_recv(){
                 }
             }
 
+            //文件接收模式
             if(ui->modeRecvcomboBox->currentText()=="文件"){
-//                unsigned char vlcrecv[239]={0};
                 quint8 vlcrecv[239]={0};
                 wiringPiSPIDataRW(1, vlcrecv, 239);
                 quint8* tmp = vlcrecv;
+                clock_t start, end;
 
-                // 文件头信息
+                //文件头信息
                 if(!filehead_done){
                     RecvFileName = QString((char*)vlcrecv).section("##",0,0);
                     RecvFileSize = QString((char*)vlcrecv).section("##",1,1).toInt();
                     recvSize=0;
 
-                    QString recvFileHeadInfo = "新文件开始接收! 文件名:" + RecvFileName + " 文件大小:" + QString::number(RecvFileSize);
+                    QString recvFileHeadInfo = "新文件开始接收! 文件名:" + RecvFileName + " 文件大小:" + QString::number(RecvFileSize)+"Bytes";
                     ui->vlcRecvtextBrowser->append(recvFileHeadInfo);
                     RecvFile.setFileName("/home/pi/Desktop/" + RecvFileName);
                     if(!RecvFile.open(QIODevice::WriteOnly)){
@@ -222,11 +234,12 @@ void MainWindow::spi_recv(){
                     filehead_done = true;
                     recvStream = new QDataStream(&RecvFile);
                     recvStream->setVersion(QDataStream::Qt_5_7);
+                    start = clock();
                 }
-                // 文件数据写入
+                //文件数据写入
                 else{
                     qint64 len;
-                    // 最后一块数据
+                    //最后一块数据
                     if(RecvFileSize-recvSize<239){
                         quint8 zeros = 0;
                         quint8 i = 238;
@@ -237,7 +250,6 @@ void MainWindow::spi_recv(){
                         len = recvStream->writeRawData((char*)vlcrecv, sizeof(vlcrecv)/sizeof(quint8)-zeros);
                     }
                     else len = recvStream->writeRawData((char*)vlcrecv, sizeof(vlcrecv)/sizeof(quint8));
-//                    qint64 len = RecvFile.write((char*)vlcrecv);
                     if(len<0){
                         QMessageBox::about(NULL, "提示", "文件写入失败");
                         return;
@@ -245,7 +257,9 @@ void MainWindow::spi_recv(){
                     else recvSize += len;
                     // 文件接收完成
                     if(recvSize >= RecvFileSize){
-                        QString recvFileInfo = "文件接收完成! 文件保存路径:/home/pi/Desktop/ 文件名:" + RecvFileName + " 文件大小:" + QString::number(RecvFileSize);
+                        end = clock();
+                        double used_time=(double)(end-start)/CLOCKS_PER_SEC;
+                        QString recvFileInfo = "文件接收完成! 文件保存路径:/home/pi/Desktop/ 文件名:" + RecvFileName + " 文件大小:" + QString::number(RecvFileSize) + "Bytes " + "用时: " + QString::number(used_time*1000) + "ms" + "\n=====================================================";
                         ui->vlcRecvtextBrowser->append(recvFileInfo);
                         file_recv_done = true;
                         RecvFile.close();
@@ -261,6 +275,7 @@ void MainWindow::spi_recv(){
     }
 }
 
+//SPI接口初始化函数
 void MainWindow::spi_init(){
     //初始化SPI
     if(wiringPiSetup()<0){
@@ -274,25 +289,28 @@ void MainWindow::spi_init(){
     if(spiFd1 = wiringPiSPISetup(1,spiRateRecv.toInt())==-1){
        QMessageBox::about(NULL, "提示", "SPI1初始化失败！");
      }
-
+    //设置IO口模式
     pinMode(6, INPUT);
     pinMode(24, OUTPUT); // 收发互斥
     pinMode(25,OUTPUT); // 复位
+    //写IO电平
     digitalWrite(24, 1); // 默认不开启接收
     digitalWrite(25, 0);
     sleep(1);
     digitalWrite(25, 1); // 复位脚置高
 
-    // vlc FPGA bitrate, dafault 1.25Mbps, (0,0)
+    //通过设置FPGA的IO口电平，设置光通信速率，初始化默认为1.25Mbps. (22，23)电平=(0，0)
     pinMode(22, OUTPUT);
     pinMode(23, OUTPUT);
     digitalWrite(22, 0);
     digitalWrite(23, 0);
 
+    //开启SPI接收线程
     std::thread t(&MainWindow::spi_recv, this);
     t.detach();
 }
 
+//ROV串口返回数据的读取和显示
 void MainWindow::serialROV_readyRead(){
     //从接收缓冲区中读取数据
     QByteArray buffer = serialROV.readAll();
@@ -301,8 +319,8 @@ void MainWindow::serialROV_readyRead(){
             QString text = ui->textBrowser->toPlainText();
             ui->textBrowser->clear();
             QString recv = text + QString(buffer);
-            //重新显示
             ui->textBrowser->append(recv);
+            //收到太多后清除
             if(recv.size()>500){
                 ui->textBrowser->clear();
             }
@@ -310,8 +328,9 @@ void MainWindow::serialROV_readyRead(){
     }
 }
 
+//水声通信机串口返回数据的读取、显示、解析
 void MainWindow::serialSonic_readyRead(){
-    // 接收显示
+    //接收显示
     QByteArray buffer = serialSonic.readAll();
     if(buffer.size()){
         QString show = ui->sonicRecvtextBrowser->toPlainText();
@@ -319,20 +338,21 @@ void MainWindow::serialSonic_readyRead(){
         ui->sonicRecvtextBrowser->clear();
         ui->sonicRecvtextBrowser->append(show);
 
-        // 水声控制指令解析
+        //ROV运动的水声控制指令解析
         QString recv = QString(buffer);
         QString orderKey = "Received String: ";
         int index = recv.indexOf(orderKey);
         if(index>=0){
             QString orderVal = recv.mid(index+17,6); //解析出的指令
             if(orderVal.startsWith("#") && orderVal.endsWith("$")){
-//                if(!serialROV.open(QIODevice::ReadWrite)){
-//                    QMessageBox::about(NULL, "提示", "指令已识别,ROV串口未打开！");
-//                    return;
-//                }
-//                else{
+                //指令转发时先判断ROV串口是否已经打开
+                if(!serialROV.isOpen()){
+                    QMessageBox::about(NULL, "提示", "指令已识别,ROV串口未打开！");
+                    return;
+                }
+                else{
                     QByteArray order_send = orderVal.toUtf8();
-                    serialROV.write(order_send);
+                    serialROV.write(order_send); //运动控制指令写入ROV串口
                     ui->sonicOrderlabel->setText(orderVal);
                     QString QX, QY, QM, QZ;
                     for(std::map<QString,QString>::iterator it = orderMap.begin();it!=orderMap.end();it++) {
@@ -350,7 +370,7 @@ void MainWindow::serialSonic_readyRead(){
                     ui->Yspeed_label->setText(QY);
                     ui->Mspeed_label->setText(QM);
                     ui->Zspeed_label->setText(QZ);
-//                }
+                }
             }
         }
     }
@@ -358,12 +378,14 @@ void MainWindow::serialSonic_readyRead(){
 
 
 
-//ROV
+//......ROV部分......//
+//ROV串口的开关
 void MainWindow::on_openButton_clicked(){
     if(ui->openButton->text()==QString("打开串口"))
     {
+        //串口参数设置
         serialROV.setPortName(ui->serialBox->currentText());
-        serialROV.setBaudRate(9600);
+        serialROV.setBaudRate(9600); //ROV串口波特率固定为9600
         serialROV.setDataBits(QSerialPort::Data8);
         serialROV.setParity(QSerialPort::NoParity);
         serialROV.setStopBits(QSerialPort::OneStop);
@@ -375,9 +397,6 @@ void MainWindow::on_openButton_clicked(){
             return;
         }
         ROV_is_open = true;
-        //循环更新rov速度
-//        std::thread t5(std::bind(&MainWindow::updateROVSpeed, this));
-//        t5.detach();
 
         //下拉失能
         ui->serialBox->setEnabled(false);
@@ -418,6 +437,7 @@ void MainWindow::on_ROVclearButton_clicked(){
     ui->textBrowser->clear();
 }
 
+//运动按钮(X,Y,M,Z四个方向)
 void MainWindow::on_X_upButton_clicked(){
     if(X<7) X += 1;
     else X = 7;
@@ -498,6 +518,7 @@ void MainWindow::on_Z_downButton_clicked(){
     serialROV.write(order_send);
 }
 
+//档位归零重置按钮
 void MainWindow::on_speedResetButton_clicked(){
     X=0;Y=0;M=0;Z=0;
     ui->Xspeed_label->setText(QString::number(X));
@@ -512,12 +533,13 @@ void MainWindow::on_speedResetButton_clicked(){
 
 
 
-//Sonic
+//......水声通信部分......//
+//水声串口的开关
 void MainWindow::on_openSonicButton_clicked(){
     if(ui->openSonicButton->text()==QString("打开串口"))
     {
         serialSonic.setPortName(ui->sonicBox->currentText());
-        serialSonic.setBaudRate(115200);
+        serialSonic.setBaudRate(115200); //水声通信机串口波特率默认为115200
         serialSonic.setDataBits(QSerialPort::Data8);
         serialSonic.setParity(QSerialPort::NoParity);
         serialSonic.setStopBits(QSerialPort::OneStop);
@@ -578,12 +600,14 @@ void MainWindow::on_openSonicButton_clicked(){
     }
 }
 
+//水声发送字符串(注意：发送给水声通信机的字符或者字符串最后需加回车换行符)
 void MainWindow::on_sonicSendButton_clicked(){
     QString sonicSend = ui->sonicSendEdit->toPlainText() + "\r\n";
     QByteArray sonicSendBytes = sonicSend.toUtf8();
     serialSonic.write(sonicSendBytes);
 }
 
+//常用的水声通信机交互字符('A','D','M','E',字符的含义见实验室水声通信机说明文档)
 void MainWindow::on_AButton_clicked(){
     QString opt = "A\r\n";
     QByteArray optBytes = opt.toUtf8();
@@ -616,6 +640,7 @@ void MainWindow::on_sonicSendClearButton_clicked(){
     ui->sonicSendEdit->clear();
 }
 
+//ROV运动的水声控制指令发送按钮
 void MainWindow::on_X_sonic_upButton_clicked(){
     if(X<7) X += 1;
     else X = 7;
@@ -746,7 +771,8 @@ void MainWindow::on_speedreset_sonicButton_clicked(){
 
 
 
-//VLC
+//......可见光通信部分......//
+//获取当前时间戳
 QString gettime(){
       time_t rawtime;
       struct tm *ptminfo;
@@ -787,6 +813,7 @@ QString gettime(){
       return year+"-"+mon+"-"+day+" "+hour+":"+min+":"+sec+"\n";
   }
 
+//写24脚为低电平
 void MainWindow::write24zero(){
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     digitalWrite(24, 0);
@@ -796,47 +823,47 @@ void MainWindow::vlcsend(char* vlcsend){
     wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
 }
 
+//可见光通信发送字符串
 void MainWindow::on_vlcSendButton_clicked(){
+    //收发互斥，避免自干扰
     if(ui->ParadoxcheckBox->isChecked()){
-        digitalWrite(24, 1);
+        digitalWrite(24, 1);//关闭接收
     }
 
     char vlcsend[239]={0};
     QString spiSend;
+    //附带时间戳发送
     if(ui->timecheckBox->isChecked()){
         spiSend = gettime() + ui->vlcSendtextEdit->toPlainText();
     }
     else spiSend = ui->vlcSendtextEdit->toPlainText();
-
     QByteArray spiSendBytes = spiSend.toUtf8();
     char* tmp = spiSendBytes.data();
 
-    // add crc
+    //加入CRC校验
     if(ui->CRCcheckBox->isChecked()){
         uint32_t crc_code = getCRC(tmp, strlen(tmp));
+        //将计算出的uint_32的CRC转为4个字符
         vlcsend[0] = crc_code >> 24;
         vlcsend[1] = crc_code >> 16;
         vlcsend[2] = crc_code >> 8;
         vlcsend[3] = crc_code;
         QString CRC = QByteArray(vlcsend).toHex().data();
         ui->label_crcSend->setText(CRC.mid(0,2)+" "+CRC.mid(2,2)+" "+CRC.mid(4,2)+" "+CRC.mid(6,2));
-
         strcat(vlcsend, tmp);
     }
     else strcpy(vlcsend, tmp);
 
     std::thread th1(std::bind(&MainWindow::vlcsend,this, vlcsend));
     th1.join();
-//    wiringPiSPIDataRW(0, (unsigned char*)vlcsend, 239);
-
+    //发送完成，关闭收发互斥
     if(ui->ParadoxcheckBox->isChecked()){
         std::thread th(std::bind(&MainWindow::write24zero,this));
         th.detach();
-//        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-//        digitalWrite(24, 0);
     }
 }
 
+//定时循环发送
 void MainWindow::start_spi_LoopThread(){
     if(!spi_send_loop){
            spi_send_loop = true;
@@ -854,6 +881,7 @@ void MainWindow::spi_loopSend(){
         digitalWrite(24, 1);
     }
     while(spi_send_loop){
+        //loop interval
         QString intervaltime = ui->looptimeEdit->text();
         int interval = intervaltime.toInt();
 
@@ -867,7 +895,7 @@ void MainWindow::spi_loopSend(){
         QByteArray spiSendBytes = spiSend.toUtf8();
         char* tmp = spiSendBytes.data();
 
-        // CRC
+        //CRC
         if(ui->CRCcheckBox->isChecked()){
             uint32_t crc_code = getCRC(tmp, strlen(tmp));
             vlcsend[0] = crc_code >> 24;
@@ -905,11 +933,13 @@ void MainWindow::on_loopButton_clicked(){
        }
 }
 
+//清除接收
 void MainWindow::on_clearVLCrecvButton_clicked(){
     ui->vlcRecvtextBrowser->clear();
     ui->label_crcRecv->clear();
 }
 
+//接收窗口随着接收数据变多自动下滚
 void MainWindow::on_vlcRecvtextBrowser_textChanged(){
     ui->vlcRecvtextBrowser->moveCursor(QTextCursor::End);
 }
@@ -921,7 +951,7 @@ void MainWindow::on_vlcSendClearButton_clicked(){
 
 
 
-// VLC误码率
+//光通信误码率探测循环发送函数
 void MainWindow::wumalv_loopSend(){
     if(ui->ParadoxcheckBox->isChecked()){
         digitalWrite(24, 1);
@@ -930,11 +960,11 @@ void MainWindow::wumalv_loopSend(){
         QString wumalvtime = ui->wumalvTimeEdit->text();
         int interval = wumalvtime.toInt();
         char vlcsend[239]={0};
-        QString spiSend = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        QString spiSend = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"; //探测序列
         QByteArray spiSendBytes = spiSend.toUtf8();
         char* tmp = spiSendBytes.data();
 
-        // CRC
+        //CRC
         if(ui->CRCcheckBox->isChecked()){
             uint32_t crc_code = getCRC(tmp, strlen(tmp));
             vlcsend[0] = crc_code >> 24;
@@ -979,6 +1009,7 @@ void MainWindow::on_wumalvButton_clicked(){
     }
 }
 
+//清空误码率结果
 void MainWindow::on_clearWumalvButton_clicked(){
     ui->label_wumalv->setText("0");
     ui->label_ber->setText("0");
@@ -997,7 +1028,8 @@ void MainWindow::on_clearwumalvSendNumsButton_clicked(){
 
 
 
-// 文件传输
+//......光通信文件传输......//
+//选择待发送文件
 void MainWindow::on_selectFileButton_clicked(){
     QString filePath=QFileDialog::getOpenFileName(this,"选择文件","../");
     if(!filePath.isEmpty()){
@@ -1026,11 +1058,13 @@ void MainWindow::on_selectFileButton_clicked(){
         QMessageBox::about(NULL, "提示", "选择文件路径出错");
         return;
     }
+    //设置文件发送进度条
     ui->progressBar->setMinimum(0);
     ui->progressBar->setMaximum(SendFileSize);
     ui->progressBar->setValue(0);
 }
 
+//文件发送进度条更新
 void MainWindow::updateProgressSend(){
     while(!file_send_done){
         ui->progressBar->setValue(sendSize);
@@ -1038,8 +1072,9 @@ void MainWindow::updateProgressSend(){
     ui->progressBar->setValue(SendFileSize);
 }
 
+//文件发送主函数
 void MainWindow::sendFile(){
-    //先发送文件头信息
+    //先发送文件头信息:文件名和文件大小
     QString head=QString("%1##%2").arg(SendFileName).arg(SendFileSize);
     char filehead[239] = {0};
     char* tmphead = head.toUtf8().data();
@@ -1049,12 +1084,10 @@ void MainWindow::sendFile(){
 
     QDataStream sendStream(&SendFile);
     sendStream.setVersion(QDataStream::Qt_5_9);
-    //发送文件
+    //发送文件数据
     while(!file_send_done){
         quint8 filedata[239] = {0};
         qint64 len = sendStream.readRawData((char*)filedata, 239);
-//            char filedata[239] = {0};
-//            qint64 len = SendFile.read(filedata, 239);
         if(len<0){
             QMessageBox::about(NULL, "提示", "文件读取失败");
             return;
@@ -1063,27 +1096,28 @@ void MainWindow::sendFile(){
         sendSize += len;
 
         if(sendSize == SendFileSize) file_send_done = true;
-        this_thread::sleep_for(std::chrono::milliseconds(10));
+        this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     SendFile.close();
 }
 
 void MainWindow::on_sendFileButton_clicked(){
+    //文件发送线程
     std::thread th1(std::bind(&MainWindow::sendFile,this));
     th1.detach();
-
+    //文件发送进度更新线程
     std::thread th2(std::bind(&MainWindow::updateProgressSend,this));
     th2.detach();
 }
 
 
 
-// 其他信息
+//......其他信息......//
+//获取系统当前时间
 void MainWindow::updateTime(){
     while(true){
         QDateTime dateTime = QDateTime::currentDateTime();
         QLocale locale = QLocale::Chinese;//指定中文显示
-        //QLocale locale = QLocale::English;//指定英文显示
         QString strFormat = "当前时间：yyyy-MM-dd hh:mm:ss dddd";
         QString strDateTime = locale.toString(dateTime, strFormat);
         ui->label_currentdatetime->setText(strDateTime);
@@ -1091,6 +1125,7 @@ void MainWindow::updateTime(){
     }
 }
 
+//获取系统CPU当前温度
 void MainWindow::updateTemp(){
     while(true){
         QFile* temp = new QFile("/sys/class/thermal/thermal_zone0/temp");
@@ -1111,6 +1146,7 @@ void MainWindow::updateTemp(){
     }
 }
 
+//光通信速率更新函数
 void MainWindow::update_VLC_bitrate(){
     QString old_bitrate = ui->vlcBitRatecomboBox->currentText();
     while(true){
@@ -1138,6 +1174,7 @@ void MainWindow::update_VLC_bitrate(){
     }
 }
 
+//不断写入ROV控制指令
 void MainWindow::updateROVSpeed(){
     while(ROV_is_open){
         send_rov_order();
@@ -1152,6 +1189,7 @@ void MainWindow::send_rov_order(){
     serialROV.write(order_send);
 }
 
+//光通信自动对准
 void MainWindow::autodrive(){
     bool alignment = false;
     while ((!alignment)){
@@ -1212,7 +1250,7 @@ void MainWindow::on_autodriveButton_clicked(){
     }
 }
 
-
+//初始化水声通信发送配置参数
 void MainWindow::on_initROVsendButton_clicked(){
     QString D = "D\r\n";
     QString C = "C\r\n";
@@ -1239,6 +1277,7 @@ void MainWindow::on_initROVsendButton_clicked(){
     serialSonic.write(AnumB);
 }
 
+//初始化水声通信接收配置参数
 void MainWindow::on_initROVrecvButton_clicked(){
     QString A = "A\r\n";
     QString C = "C\r\n";
@@ -1259,12 +1298,14 @@ void MainWindow::on_initROVrecvButton_clicked(){
     serialSonic.write(MB);
 }
 
+//往水声通信机写入回车换行符
 void MainWindow::on_rmButton_clicked(){
     QString end = "\r\n";
     QByteArray endB = end.toUtf8();
     serialSonic.write(endB);
 }
 
+//键盘控制ROV运动
 void MainWindow::keyPressEvent(QKeyEvent *e){
     if(e->key()==Qt::Key_W) on_X_upButton_clicked();
     if(e->key()==Qt::Key_S) on_X_downButton_clicked();
